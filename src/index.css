@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @font-face {
+    font-family: "Jersey 15 Regular";
+    src: url("/fonts/Jersey15-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+  }
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: "Jersey 15 Regular";
+    @apply bg-blackbg bg-[url('/background.png')] lg:bg-[length:83%] md:bg-[length:100%] sm:bg-[length:150%] bg-[length:200%] bg-fixed text-purple;
+  }
+}
