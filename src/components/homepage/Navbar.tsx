@@ -12,11 +12,13 @@ export default function Navbar() {
       </div>
       <div className="rounded-xl border border-purple border-solid md:px-4 md:py-2 px-3 py-1 bg-black w-1/2 focus-within:ring-2 focus-within:ring-purple outline-none transition-all ease-linear duration-200 flex items-center gap-2">
         <Search />
-        <input
-          type="text"
-          placeholder="Search"
-          className="bg-black outline-none w-full"
-        />
+        <form action="">
+          <input
+            type="text"
+            placeholder="Search"
+            className="bg-black outline-none w-full"
+          />
+        </form>
       </div>
 
       <div className="rounded-full md:h-14 md:w-14 sm:w-11 sm:h-11 w-9 h-9 bg-black border border-solid border-purple flex justify-center items-center hover:shadow hover:cursor-pointer transition-all ease-linear duration-200">

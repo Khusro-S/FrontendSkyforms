@@ -1,5 +1,5 @@
 import Navbar from "../components/homepage/Navbar";
-// import RecentFormsList from "../components/homepage/RecentFormsList";
+import RecentFormsList from "../components/homepage/RecentFormsList";
 import Template from "../components/homepage/Template";
 
 export default function HomePage() {
@@ -42,7 +42,7 @@ export default function HomePage() {
       </header>
       <main>
         <Template />
-        {/* <RecentFormsList /> */}
+        <RecentFormsList />
       </main>
     </div>
   );
