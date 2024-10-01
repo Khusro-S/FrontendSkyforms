@@ -45,7 +45,7 @@ const theme = createTheme({
 export default function ColorTabs() {
   const [value, setValue] = React.useState("questions");
 
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleChange = (_event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
 
