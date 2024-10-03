@@ -1,7 +1,9 @@
 // src/theme/theme.js
-import { styled } from "@mui/material/styles";
-import Switch from "@mui/material/Switch";
-import { colors, styled, SwitchProps } from "@mui/material";
+// import { styled } from "@mui/material/styles";
+// import Switch from "@mui/material/Switch";
+// import { colors, styled, SwitchProps } from "@mui/material";
+// import styled from "@emotion/styled/macro";
+// import { colors } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 
 const Theme = createTheme({
@@ -63,9 +65,6 @@ const Theme = createTheme({
           }`,
           backgroundColor: theme.palette.background.default,
           borderRadius: "0.75rem",
-          "&:not(:last-child)": {
-            borderBottom: 0,
-          },
           "&::before": {
             display: "none",
           },
@@ -208,6 +207,37 @@ const Theme = createTheme({
             opacity: 1,
             backgroundColor: theme.palette.primary.main,
           },
+        }),
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          variants: [
+            {
+              props: { variant: "outlined" },
+              style: {
+                borderColor: theme.palette.primary.main,
+              },
+              "&.Mui-disabled": {
+                // opacity: 0.5,
+                // color: theme.palette.primary.main,
+                borderColor: theme.palette.primary.main,
+              },
+            },
+            {
+              props: { variant: "contained" },
+              style: {
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.background.default,
+              },
+              "&.Mui-disabled": {
+                opacity: 0.7,
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.background.default,
+              },
+            },
+          ],
         }),
       },
     },
