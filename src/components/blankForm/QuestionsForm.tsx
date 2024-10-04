@@ -315,40 +315,110 @@ export default function QuestionsForm() {
                 />
               </div>
             )}
-            <div className="addQuestionFooter w-full flex items-center justify-between mt-3">
-              <div className="addQuestionFooterBottomLeft border-t border-solid border-purple pt-1">
+            {/* <div className="addQuestionFooter w-full flex items-center justify-between mt-3"> */}
+            {/* <div className="addQuestionFooterBottomLeft border-t border-solid border-purple pt-1">
                 <Button size="small">
                   <NorthEast sx={{ marginRight: 1, width: "20%" }} /> Answer Key
                 </Button>
-              </div>
-              <div className="addQuestionFooterBottomRight border-t border-solid border-purple pt-1">
-                <IconButton
-                  onClick={() => {
-                    copyQuestion(index);
+              </div> */}
+            <div className="addQuestionFooterBottomRight border-t border-solid border-purple h-full pt-1 flex items-center md:place-self-end place-content-center max-sm:w-full w-max">
+              <IconButton
+                onClick={() => {
+                  copyQuestion(index);
+                }}
+              >
+                <FilterNone
+                  color="primary"
+                  sx={{
+                    marginRight: { xs: "4px", sm: "6px", md: "8px" },
+                    fontSize: {
+                      xs: "1.125rem",
+                      sm: "1.25rem",
+                      md: "1.5rem",
+                    },
+                    lineHeight: {
+                      xs: "1.75rem",
+                      sm: "1.75rem",
+                      md: "2rem",
+                    },
+                    //   display: {
+                    //     xs: "none",
+                    //     md: "inline-block",
+                    //   },
                   }}
-                >
-                  <FilterNone color="primary" />
-                </IconButton>
-                <IconButton
-                  onClick={() => {
-                    deleteQuestion(index);
+                />
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  deleteQuestion(index);
+                }}
+              >
+                <Delete
+                  color="warning"
+                  sx={{
+                    marginRight: { xs: "4px", sm: "6px", md: "8px" },
+                    fontSize: {
+                      xs: "1.125rem",
+                      sm: "1.25rem",
+                      md: "1.5rem",
+                    },
+                    lineHeight: {
+                      xs: "1.75rem",
+                      sm: "1.75rem",
+                      md: "2rem",
+                    },
+                    //   display: {
+                    //     xs: "none",
+                    //     md: "inline-block",
+                    //   },
                   }}
-                >
-                  <Delete color="warning" />
-                </IconButton>
-                <span
-                  onClick={() => {
-                    requiredQuestion(index);
+                />
+              </IconButton>
+              <div className="w-[2px] h-full bg-purple mx-2" />
+              <span
+                onClick={() => {
+                  requiredQuestion(index);
+                }}
+              >
+                Required{" "}
+                <Switch
+                  name="checked"
+                  checked={question.required}
+                  sx={{
+                    marginRight: { xs: "4px", sm: "6px", md: "8px" },
+                    fontSize: {
+                      xs: "1.125rem",
+                      sm: "1.25rem",
+                      md: "1.5rem",
+                    },
+                    lineHeight: {
+                      xs: "1.75rem",
+                      sm: "1.75rem",
+                      md: "2rem",
+                    },
                   }}
-                >
-                  Required{" "}
-                  <Switch name="checked" checked={question.required}></Switch>
-                </span>
-                <IconButton>
-                  <MoreVertOutlined color="primary" />
-                </IconButton>
-              </div>
+                />
+              </span>
+              {/* <IconButton>
+                    <MoreVertOutlined
+                        color="primary"
+                        sx={{
+                        marginRight: { xs: "4px", sm: "6px", md: "8px" },
+                        fontSize: {
+                            xs: "1.125rem",
+                            sm: "1.25rem",
+                            md: "1.5rem",
+                        },
+                        lineHeight: {
+                            xs: "1.75rem",
+                            sm: "1.75rem",
+                            md: "2rem",
+                        },
+                        }}
+                    />
+                    </IconButton> */}
             </div>
+            {/* </div> */}
           </AccordionDetails>
           <div className="questionEdit flex flex-col gap-3 bg-blackbg h-full py-2 px-1 rounded-xl">
             <AddCircleOutline color="primary" />
