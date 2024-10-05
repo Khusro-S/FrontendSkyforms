@@ -241,6 +241,23 @@ const Theme = createTheme({
         }),
       },
     },
+
+    // MuiFormLabel: {
+    //   styleOverrides: {
+    //     root: {
+    //       "&.MuiFormControlLabel-asterisk": {
+    //         display: "none",
+    //       },
+    //     },
+    //   },
+    // },
+    // MuiInputLabel: {
+    //   styleOverrides: {
+    //     asterisk: {
+    //       display: "none", // Hides the default asterisk for required fields
+    //     },
+    //   },
+    // },
   },
 });
 
