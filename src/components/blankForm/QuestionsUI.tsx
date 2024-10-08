@@ -68,6 +68,7 @@ function QuestionsUI({ questions, setQuestions }: QuestionUIProps) {
     }
     prevQuestionsLength.current = questions.length;
   }, [questions.length]);
+
   function changeQuestion(text: string, index: number) {
     const newQuestion = [...questions];
     newQuestion[index].questionText = text;
@@ -123,6 +124,43 @@ function QuestionsUI({ questions, setQuestions }: QuestionUIProps) {
       return updatedQuestions;
     });
   }
+  //   function expandCloseAll() {
+  //     const updatedQuestions = questions.map((question) => ({
+  //       ...question,
+  //       open: false,
+  //     }));
+
+  //     console.log("Before update:", questions);
+  //     setQuestions(updatedQuestions);
+  //     console.log("After update:", updatedQuestions);
+  //   }
+
+  function expandCloseAll() {
+    const qs = [...questions];
+    for (let index = 0; index < qs.length; index++) {
+      qs[index].open = false;
+    }
+    setQuestions(qs);
+  }
+  function handleExpand(i: number) {
+    const updatedQuestions = questions.map((question, index) => ({
+      ...question,
+      open: index === i,
+    }));
+
+    setQuestions(updatedQuestions);
+  }
+  //   function handleExpand(i: number) {
+  //     const qs = [...questions];
+  //     for (let j = 0; j < qs.length; j++) {
+  //       if (i === j) {
+  //         qs[i].open = true;
+  //       } else {
+  //         qs[j].open = false;
+  //       }
+  //     }
+  //     setQuestions(qs);
+  //   }
 
   //   function copyQuestion(index: number) {
   //     const qs = [...questions];
@@ -196,41 +234,6 @@ function QuestionsUI({ questions, setQuestions }: QuestionUIProps) {
     );
     setQuestions(itemF);
   }
-  function expandCloseAll() {
-    const updatedQuestions = questions.map((question) => ({
-      ...question,
-      open: false,
-    }));
-
-    setQuestions(updatedQuestions);
-  }
-
-  //   function expandCloseAll() {
-  //     const qs = [...questions];
-  //     for (let index = 0; index < qs.length; index++) {
-  //       qs[index].open = false;
-  //     }
-  //     setQuestions(qs);
-  //   }
-  function handleExpand(i: number) {
-    const updatedQuestions = questions.map((question, index) => ({
-      ...question,
-      open: index === i,
-    }));
-
-    setQuestions(updatedQuestions);
-  }
-  //   function handleExpand(i: number) {
-  //     const qs = [...questions];
-  //     for (let j = 0; j < qs.length; j++) {
-  //       if (i === j) {
-  //         qs[i].open = true;
-  //       } else {
-  //         qs[j].open = false;
-  //       }
-  //     }
-  //     setQuestions(qs);
-  //   }
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -517,12 +520,7 @@ function QuestionsUI({ questions, setQuestions }: QuestionUIProps) {
                                     />
                                   </div>
                                 )}
-                                {/* <div className="addQuestionFooter w-full flex items-center justify-between mt-3"> */}
-                                {/* <div className="addQuestionFooterBottomLeft border-t border-solid border-purple pt-1">
-<Button size="small">
-<NorthEast sx={{ marginRight: 1, width: "20%" }} /> Answer Key
-</Button>
-</div> */}
+
                                 <div className="addQuestionFooterBottomRight border-t border-solid border-purple h-full pt-1 flex items-center sm:place-self-end place-content-center max-sm:w-full w-max mt-3">
                                   <IconButton
                                     onClick={() => {
@@ -547,10 +545,6 @@ function QuestionsUI({ questions, setQuestions }: QuestionUIProps) {
                                           sm: "1.75rem",
                                           md: "2rem",
                                         },
-                                        //   display: {
-                                        //     xs: "none",
-                                        //     md: "inline-block",
-                                        //   },
                                       }}
                                     />
                                   </IconButton>
@@ -577,10 +571,6 @@ function QuestionsUI({ questions, setQuestions }: QuestionUIProps) {
                                           sm: "1.75rem",
                                           md: "2rem",
                                         },
-                                        //   display: {
-                                        //     xs: "none",
-                                        //     md: "inline-block",
-                                        //   },
                                       }}
                                     />
                                   </IconButton>
