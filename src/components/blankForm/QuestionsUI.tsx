@@ -135,7 +135,9 @@ function QuestionsUI({ questions, setQuestions }: QuestionUIProps) {
     const questionToCopy = newQuestions[index];
     const newQuestion = {
       ...questionToCopy,
+      id: crypto.randomUUID(),
       options: questionToCopy.options.map((option) => ({ ...option })),
+      open: true,
     };
 
     setQuestions([...newQuestions, newQuestion]);
