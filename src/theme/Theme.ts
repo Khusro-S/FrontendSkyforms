@@ -59,9 +59,9 @@ const Theme = createTheme({
     },
     MuiAccordion: {
       styleOverrides: {
-        root: ({ theme, expanded }) => ({
+        root: ({ theme, ownerState }) => ({
           border: `solid ${theme.palette.primary.main} ${
-            expanded ? "4px" : "1px"
+            ownerState.expanded ? "3px" : "1px"
           }`,
           backgroundColor: theme.palette.background.default,
           borderRadius: "0.75rem",

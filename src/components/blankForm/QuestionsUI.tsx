@@ -196,26 +196,41 @@ function QuestionsUI({ questions, setQuestions }: QuestionUIProps) {
     );
     setQuestions(itemF);
   }
-
   function expandCloseAll() {
-    const qs = [...questions];
-    for (let index = 0; index < qs.length; index++) {
-      qs[index].open = false;
-    }
-    setQuestions(qs);
+    const updatedQuestions = questions.map((question) => ({
+      ...question,
+      open: false,
+    }));
+
+    setQuestions(updatedQuestions);
   }
 
+  //   function expandCloseAll() {
+  //     const qs = [...questions];
+  //     for (let index = 0; index < qs.length; index++) {
+  //       qs[index].open = false;
+  //     }
+  //     setQuestions(qs);
+  //   }
   function handleExpand(i: number) {
-    const qs = [...questions];
-    for (let j = 0; j < qs.length; j++) {
-      if (i === j) {
-        qs[i].open = true;
-      } else {
-        qs[j].open = false;
-      }
-    }
-    setQuestions(qs);
+    const updatedQuestions = questions.map((question, index) => ({
+      ...question,
+      open: index === i,
+    }));
+
+    setQuestions(updatedQuestions);
   }
+  //   function handleExpand(i: number) {
+  //     const qs = [...questions];
+  //     for (let j = 0; j < qs.length; j++) {
+  //       if (i === j) {
+  //         qs[i].open = true;
+  //       } else {
+  //         qs[j].open = false;
+  //       }
+  //     }
+  //     setQuestions(qs);
+  //   }
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -257,7 +272,6 @@ function QuestionsUI({ questions, setQuestions }: QuestionUIProps) {
                         onChange={() => handleExpand(index)}
                       >
                         <div
-                          key={index}
                           ref={
                             index === questions.length - 1
                               ? lastQuestionRef
