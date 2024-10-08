@@ -2,9 +2,6 @@ import { useEffect, useState } from "react";
 import { ThemeProvider } from "@mui/material";
 
 import Theme from "../../theme/Theme";
-import { DragDropContext, Droppable } from "@hello-pangea/dnd";
-
-import { DropResult } from "@hello-pangea/dnd";
 import QuestionsUI from "./QuestionsUI";
 
 interface Option {
@@ -12,6 +9,7 @@ interface Option {
 }
 
 interface Question {
+  id: string;
   questionText: string;
   questionType: string;
   options: Option[];
@@ -27,6 +25,7 @@ export default function QuestionsForm() {
         return {
           questions: parsedData.questions || [
             {
+              id: crypto.randomUUID(),
               questionText: "Which flower is named after the sun?",
               questionType: "radio",
               options: [
@@ -51,6 +50,7 @@ export default function QuestionsForm() {
     return {
       questions: [
         {
+        id: crypto.randomUUID(),
           questionText: "Untitled Question",
           questionType: "radio",
           options: [{ optionText: "Untitled Option" }],
@@ -89,29 +89,6 @@ export default function QuestionsForm() {
     }
   }, [questions, formTitle, formDescription]);
 
-  const reorder = (
-    list: Question[],
-    startIndex: number,
-    endIndex: number
-  ): Question[] => {
-    const result = Array.from(list);
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
-    return result;
-  };
-  function onDragEnd(result: DropResult) {
-    if (!result.destination) {
-      return;
-    }
-    const itemgg = [...questions];
-    const itemF = reorder(
-      itemgg,
-      result.source.index,
-      result.destination.index
-    );
-    setQuestions(itemF);
-  }
-
   return (
     <ThemeProvider theme={Theme}>
       <div className="questionform h-full pb-4 flex flex-col justify-center items-center px-5">
@@ -134,34 +111,8 @@ export default function QuestionsForm() {
               />
             </div>
           </div>
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="droppable">
-              {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps}>
-                  <div {...provided.droppableProps} ref={provided.innerRef}>
-                    <QuestionsUI
-                      questions={questions}
-                      setQuestions={setQuestions}
-                    />
-                    {provided.placeholder}
-                  </div>
-                  {/* <Draggable draggableId="draggable" index={0}>
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        Drag me!
-                      </div>
-                    )}
-                  </Draggable> */}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-          {/* {QuestionsUI()} */}
+
+          <QuestionsUI questions={questions} setQuestions={setQuestions} />
         </div>
       </div>
     </ThemeProvider>
