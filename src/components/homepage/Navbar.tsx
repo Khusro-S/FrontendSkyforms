@@ -12,7 +12,7 @@ export default function Navbar() {
       </div>
       <div className="rounded-xl border border-purple border-solid md:px-4 md:py-2 px-3 py-1 bg-black w-1/2 focus-within:ring-2 focus-within:ring-purple outline-none transition-all ease-linear duration-200 flex items-center gap-2">
         <Search />
-        <form action="">
+        <form action="" className="w-full">
           <input
             type="text"
             placeholder="Search"

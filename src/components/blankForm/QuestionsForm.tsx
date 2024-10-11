@@ -1,93 +1,27 @@
-import { useEffect, useState } from "react";
+// import { useEffect } from "react";
 import { ThemeProvider } from "@mui/material";
 
 import Theme from "../../theme/Theme";
 import QuestionsUI from "./QuestionsUI";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../store/rootReducer";
+// import { questionsActions } from "../../store/questionsSlice";
+import { formSliceActions } from "../../store/formSlice";
 
-interface Option {
-  optionText: string;
-}
-
-interface Question {
-  id: string;
-  questionText: string;
-  questionType: string;
-  options: Option[];
-  open: boolean;
-  required: boolean;
-}
 export default function QuestionsForm() {
-  const getInitialFormData = () => {
-    const savedFormData = localStorage.getItem("questionsFormData");
-    if (savedFormData) {
-      try {
-        const parsedData = JSON.parse(savedFormData);
-        return {
-          questions: parsedData.questions || [
-            {
-              id: crypto.randomUUID(),
-              questionText: "Which flower is named after the sun?",
-              questionType: "radio",
-              options: [
-                { optionText: "Lilies" },
-                { optionText: "Roses" },
-                { optionText: "Sunflowers" },
-                { optionText: "Lavender" },
-              ],
-              open: true,
-              required: false,
-            },
-          ],
-          formTitle: parsedData.formTitle || "",
-          formDescription: parsedData.formDescription || "",
-        };
-      } catch (error) {
-        console.error("Error parsing saved form data:", error);
-        // If parsing fails, return default values
-      }
-    }
-    // Default values if no saved data exists
-    return {
-      questions: [
-        {
-        id: crypto.randomUUID(),
-          questionText: "Untitled Question",
-          questionType: "radio",
-          options: [{ optionText: "Untitled Option" }],
-          open: true,
-          required: false,
-        },
-      ],
-      formTitle: "",
-      formDescription: "",
-    };
+  const dispatch = useDispatch();
+  //   const questions = useSelector((state: RootState) => state.form.questions);
+  const formTitle = useSelector((state: RootState) => state.form.formTitle);
+  const formDescription = useSelector(
+    (state: RootState) => state.form.formDescription
+  );
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(formSliceActions.setFormTitle(e.target.value));
   };
-
-  // Initialize form data from localStorage or defaults
-  const initialFormData = getInitialFormData();
-
-  // Set up state variables
-  const [questions, setQuestions] = useState<Question[]>(
-    initialFormData.questions
-  );
-  const [formTitle, setFormTitle] = useState(initialFormData.formTitle);
-  const [formDescription, setFormDescription] = useState(
-    initialFormData.formDescription
-  );
-
-  // useEffect to save form data to localStorage whenever it changes
-  useEffect(() => {
-    const formData = {
-      questions,
-      formTitle,
-      formDescription,
-    };
-    try {
-      localStorage.setItem("questionsFormData", JSON.stringify(formData));
-    } catch (error) {
-      console.error("Error saving form data to localStorage:", error);
-    }
-  }, [questions, formTitle, formDescription]);
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(formSliceActions.setFormDescription(e.target.value));
+  };
 
   return (
     <ThemeProvider theme={Theme}>
@@ -99,20 +33,21 @@ export default function QuestionsForm() {
                 type="text"
                 placeholder="Untitled Form"
                 value={formTitle}
-                onChange={(e) => setFormTitle(e.target.value)}
+                onChange={handleTitleChange}
                 className="w-full outline-none border-b border-solid border-purple focus:border-b-4 md:pb-2 pb-1 bg-black transition-all ease-linear duration-200 md:text-6xl sm:text-5xl text-4xl"
               />
               <input
                 type="text"
                 placeholder="Untitled Description"
                 value={formDescription}
-                onChange={(e) => setFormDescription(e.target.value)}
+                onChange={handleDescriptionChange}
                 className="w-full outline-none border-b border-solid border-purple focus:border-b-4 md:py-2 py-1 bg-black transition-all ease-linear duration-200 md:text-4xl sm:text-3xl text-2xl"
               />
             </div>
           </div>
 
-          <QuestionsUI questions={questions} setQuestions={setQuestions} />
+          <QuestionsUI />
+          {/* <Button variant="contained" color="primary" onClick={commitToDB}>Create form</Button> */}
         </div>
       </div>
     </ThemeProvider>

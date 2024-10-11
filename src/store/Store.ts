@@ -1,0 +1,52 @@
+import { configureStore } from "@reduxjs/toolkit";
+// import questionsSlice from "./questionsSlice";
+// import formSlice from "./formSlice";
+import rootReducer, { RootState } from "./rootReducer";
+
+const STORAGE_KEY = "persistentState";
+
+
+function saveToLocalStorage(state: RootState) {
+  try {
+    const serialisedState = JSON.stringify(state);
+    localStorage.setItem(STORAGE_KEY, serialisedState);
+  } catch (e) {
+    console.warn("Could not save state", e);
+  }
+}
+
+function loadFromLocalStorage() {
+  try {
+    const serialisedState = localStorage.getItem(STORAGE_KEY);
+    if (serialisedState === null) return undefined;
+    return JSON.parse(serialisedState);
+  } catch (e) {
+    console.warn("Could not load state", e);
+    return undefined;
+  }
+}
+
+const preloadedState = loadFromLocalStorage();
+
+const Store = configureStore({
+  reducer: rootReducer,
+  preloadedState,
+});
+
+let saveTimeout: number | null = null;
+
+Store.subscribe(() => {
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+  }
+
+  saveTimeout = window.setTimeout(() => {
+    saveToLocalStorage(Store.getState());
+  }, 1000); // 1 second delay
+});
+
+
+// export type RootState = ReturnType<typeof Store.getState>;
+// export type RootState = ReturnType<typeof rootReducer>;
+// export type AppDispatch = typeof Store.dispatch;
+export default Store;

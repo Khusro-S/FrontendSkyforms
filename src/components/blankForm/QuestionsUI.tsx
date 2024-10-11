@@ -19,8 +19,6 @@ import CropOriginalOutlined from "@mui/icons-material/CropOriginalOutlined";
 import Close from "@mui/icons-material/Close";
 import FilterNone from "@mui/icons-material/FilterNone";
 import Delete from "@mui/icons-material/Delete";
-// import NorthEast from "@mui/icons-material/NorthEast";
-// import MoreVertOutlined from "@mui/icons-material/MoreVertOutlined";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
 import TextFields from "@mui/icons-material/TextFields";
 import { useEffect, useRef, useState } from "react";
@@ -28,27 +26,15 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 
 import { DropResult } from "@hello-pangea/dnd";
 import DragIndicator from "@mui/icons-material/DragIndicator";
+import { useDispatch, useSelector } from "react-redux";
 
-interface Option {
-  optionText: string;
-}
+import { questionsActions } from "../../store/questionsSlice";
+import { RootState } from "../../store/rootReducer";
 
-interface Question {
-  id: string;
-  questionText: string;
-  questionType: string; // Can be refined to an enum or specific types
-  options: Option[];
-  open: boolean;
-  required: boolean;
-}
-
-// Define the prop types for the child component
-interface QuestionUIProps {
-  questions: Question[];
-  setQuestions: React.Dispatch<React.SetStateAction<Question[]>>;
-}
-
-function QuestionsUI({ questions, setQuestions }: QuestionUIProps) {
+function QuestionsUI() {
+  const questions = useSelector(
+    (state: RootState) => state.questions.questions
+  );
   const [questionTypeSelect, setQuestionTypeSelect] =
     useState("Multiple Choice");
 
@@ -69,171 +55,62 @@ function QuestionsUI({ questions, setQuestions }: QuestionUIProps) {
     prevQuestionsLength.current = questions.length;
   }, [questions.length]);
 
-  function changeQuestion(text: string, index: number) {
-    const newQuestion = [...questions];
-    newQuestion[index].questionText = text;
-    setQuestions(newQuestion);
-    // console.log(newQuestion);
-  }
-  function addQuestionType(index: number, type: string) {
-    const qs = [...questions];
-    console.log(type);
-    qs[index].questionType = type;
-    setQuestions(qs);
-  }
-  function changeOptionValues(text: string, i: number, j: number) {
-    const optionsQuestion = [...questions];
-    optionsQuestion[i].options[j].optionText = text;
-    setQuestions(optionsQuestion);
-  }
-  function removeOption(i: number, j: number) {
-    const removeOptionQuestion = [...questions];
-    if (removeOptionQuestion[i].options.length > 1) {
-      removeOptionQuestion[i].options.splice(j, 1);
-      setQuestions(removeOptionQuestion);
-    }
-  }
-  //   function addOption(index: number) {
-  //     const optionsOfQuestion = [...questions];
-  //     if (optionsOfQuestion[index].options.length < 5) {
-  //       optionsOfQuestion[index].options.push({
-  //         optionText: "Untitled option",
-  //       });
-  //     } else {
-  //       console.log("max 5 options");
-  //     }
-  //     setQuestions(optionsOfQuestion);
-  //   }
-  function addOption(questionIndex: number) {
-    setQuestions((prevQuestions) => {
-      const updatedQuestions = [...prevQuestions];
-      const currentQuestion = updatedQuestions[questionIndex];
+  const dispatch = useDispatch();
 
-      if (currentQuestion.options.length < 5) {
-        currentQuestion.options = [
-          ...currentQuestion.options,
-          { optionText: "Untitled option" },
-        ];
-
-        updatedQuestions[questionIndex] = {
-          ...currentQuestion,
-          options: [...currentQuestion.options],
-        };
-      }
-
-      return updatedQuestions;
-    });
-  }
-  //   function expandCloseAll() {
-  //     const updatedQuestions = questions.map((question) => ({
-  //       ...question,
-  //       open: false,
-  //     }));
-
-  //     console.log("Before update:", questions);
-  //     setQuestions(updatedQuestions);
-  //     console.log("After update:", updatedQuestions);
-  //   }
-
-  function expandCloseAll() {
-    const qs = [...questions];
-    for (let index = 0; index < qs.length; index++) {
-      qs[index].open = false;
-    }
-    setQuestions(qs);
-  }
-  function handleExpand(i: number) {
-    const updatedQuestions = questions.map((question, index) => ({
-      ...question,
-      open: index === i,
-    }));
-
-    setQuestions(updatedQuestions);
-  }
-  //   function handleExpand(i: number) {
-  //     const qs = [...questions];
-  //     for (let j = 0; j < qs.length; j++) {
-  //       if (i === j) {
-  //         qs[i].open = true;
-  //       } else {
-  //         qs[j].open = false;
-  //       }
-  //     }
-  //     setQuestions(qs);
-  //   }
-
-  //   function copyQuestion(index: number) {
-  //     const qs = [...questions];
-  //     const newQuestion = qs[index];
-  //     setQuestions([...questions, newQuestion]);
-  //   }
-  function copyQuestion(index: number) {
-    expandCloseAll();
-    const newQuestions = [...questions];
-    const questionToCopy = newQuestions[index];
-    const newQuestion = {
-      ...questionToCopy,
-      id: crypto.randomUUID(),
-      options: questionToCopy.options.map((option) => ({ ...option })),
-      open: true,
-    };
-
-    setQuestions([...newQuestions, newQuestion]);
-  }
-  function deleteQuestion(index: number) {
-    const qs = [...questions];
-    if (questions.length > 1) {
-      qs.splice(index, 1);
-    }
-    setQuestions(qs);
-  }
-  function requiredQuestion(index: number) {
-    const reqQuestion = [...questions];
-    reqQuestion[index].required = !reqQuestion[index].required;
-    setQuestions(reqQuestion);
-  }
-  function addMoreQuestionFiled() {
-    expandCloseAll();
-    setQuestions([
-      ...questions,
-      {
-        id: crypto.randomUUID(),
-        questionText: "Untitled Question",
-        questionType: "radio",
-        options: [{ optionText: "Untitled option" }],
-        required: false,
-        open: true,
-      },
-    ]);
-  }
-
-  const isSmallScreen = useMediaQuery("(max-width:600px)"); // Example for small screen (mobile)
-  // const isMediumScreen = useMediaQuery(
-  //   "(min-width:601px) and (max-width:960px)"
-  // ); // Example for medium screen (tablet)
-
-  const reorder = (
-    list: Question[],
-    startIndex: number,
-    endIndex: number
-  ): Question[] => {
-    const result = Array.from(list);
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
-    return result;
+  const handleExpand = (i: number) => {
+    dispatch(questionsActions.handleExpand(i));
   };
-  function onDragEnd(result: DropResult) {
+
+  const changeQuestion = (text: string, index: number) => {
+    dispatch(questionsActions.changeQuestion({ text, index }));
+  };
+
+  const addQuestionType = (index: number, type: string) => {
+    dispatch(questionsActions.addQuestionType({ index, type }));
+  };
+
+  const changeOptionValues = (text: string, i: number, j: number) => {
+    dispatch(questionsActions.changeOptionValues({ text, i, j }));
+  };
+
+  const removeOption = (i: number, j: number) => {
+    dispatch(questionsActions.removeOption({ i, j }));
+  };
+
+  const copyQuestion = (index: number) => {
+    dispatch(questionsActions.copyQuestion(index));
+  };
+
+  const addOption = (index: number) => {
+    dispatch(questionsActions.addOption(index));
+  };
+
+  const addMoreQuestionField = () => {
+    dispatch(questionsActions.addMoreQuestionField());
+  };
+
+  const requiredQuestion = (index: number) => {
+    dispatch(questionsActions.requiredQuestion({ index }));
+  };
+
+  const deleteQuestion = (index: number) => {
+    dispatch(questionsActions.deleteQuestion({ index }));
+  };
+
+  const onDragEnd = (result: DropResult) => {
     if (!result.destination) {
       return;
     }
-    const itemgg = [...questions];
-    const itemF = reorder(
-      itemgg,
-      result.source.index,
-      result.destination.index
+
+    dispatch(
+      questionsActions.reorderQuestions({
+        startIndex: result.source.index,
+        endIndex: result.destination.index,
+      })
     );
-    setQuestions(itemF);
-  }
+  };
+
+  const isSmallScreen = useMediaQuery("(max-width:600px)");
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -588,30 +465,30 @@ function QuestionsUI({ questions, setQuestions }: QuestionUIProps) {
                                     />
                                   </span>
                                   {/* <IconButton>
-<MoreVertOutlined
-    color="primary"
-    sx={{
-    marginRight: { xs: "4px", sm: "6px", md: "8px" },
-    fontSize: {
-        xs: "1.125rem",
-        sm: "1.25rem",
-        md: "1.5rem",
-    },
-    lineHeight: {
-        xs: "1.75rem",
-        sm: "1.75rem",
-        md: "2rem",
-    },
-    }}
-/>
-</IconButton> */}
+                                <MoreVertOutlined
+                                color="primary"
+                                sx={{
+                                marginRight: { xs: "4px", sm: "6px", md: "8px" },
+                                fontSize: {
+                                xs: "1.125rem",
+                                sm: "1.25rem",
+                                md: "1.5rem",
+                                },
+                                lineHeight: {
+                                xs: "1.75rem",
+                                sm: "1.75rem",
+                                md: "2rem",``
+                                },
+                                }}
+                                />
+                                </IconButton> */}
                                 </div>
                                 {/* </div> */}
                               </AccordionDetails>
                               <div className="questionEdit flex flex-col gap-3 bg-blackbg h-full py-2 px-1 rounded-xl">
                                 <AddCircleOutline
                                   color="primary"
-                                  onClick={addMoreQuestionFiled}
+                                  onClick={addMoreQuestionField}
                                   className="hover:cursor-pointer hover:scale-110 transition-all ease-linear duration-200"
                                 />
                                 <CropOriginalOutlined color="primary" />
