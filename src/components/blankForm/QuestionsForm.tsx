@@ -5,23 +5,41 @@ import Theme from "../../theme/Theme";
 import QuestionsUI from "./QuestionsUI";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/rootReducer";
-// import { questionsActions } from "../../store/questionsSlice";
-import { formSliceActions } from "../../store/formSlice";
+import { questionsActions } from "../../store/questionsSlice";
+// import { useEffect } from "react";
+// import axios from "axios";
+// import { formSliceActions } from "../../store/formSlice";
 
 export default function QuestionsForm() {
   const dispatch = useDispatch();
-  //   const questions = useSelector((state: RootState) => state.form.questions);
-  const formTitle = useSelector((state: RootState) => state.form.formTitle);
-  const formDescription = useSelector(
-    (state: RootState) => state.form.formDescription
+  // const questions = useSelector((state: RootState) => state.questions.questions);
+  const formTitle = useSelector(
+    (state: RootState) => state.questions.formTitle
   );
+  const formDescription = useSelector(
+    (state: RootState) => state.questions.formDescription
+  );
+  //   const formId = useSelector((state: RootState) => state.questions.formId);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(formSliceActions.setFormTitle(e.target.value));
+    dispatch(questionsActions.setFormTitle(e.target.value));
   };
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(formSliceActions.setFormDescription(e.target.value));
+    dispatch(questionsActions.setFormDescription(e.target.value));
   };
+  // useEffect(()=>{
+  //     async function FetchData(){
+  //         const req = await axios.get(`http://example.com/example/${formId}`);
+  //         const questionData=req?.data.questions;
+  //         console.log(questionData);
+  //         const formTitle = req.data.formTitle;
+  //         const formDescription = req.data.formDescription;
+  //         dispatch(questionsActions.setFormDescription(formDescription));
+  //         dispatch(questionsActions.setFormTitle(formTitle));
+  //         dispatch(questionsActions.setQuestions(questionData))
+  //     }
+  //     FetchData()
+  // },[dispatch, formId])
 
   return (
     <ThemeProvider theme={Theme}>

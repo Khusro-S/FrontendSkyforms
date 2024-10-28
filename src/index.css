@@ -6,8 +6,8 @@
   @font-face {
     font-family: "Jersey 15 Regular";
     src: url("/fonts/Jersey15-Regular.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
+    /* font-weight: 400; */
+    font-style: normal; 
   }
   *,
   *::before,
@@ -17,5 +17,26 @@
   body {
     font-family: "Jersey 15 Regular";
     @apply bg-blackbg bg-[url('/background.png')] lg:bg-[length:83%] md:bg-[length:100%] sm:bg-[length:150%] bg-[length:200%] bg-fixed text-purple;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+  }
+  
+  *::-webkit-scrollbar-track {
+    @apply bg-black; /* Background of the track */
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    @apply bg-purple rounded; /* Color of the thumb */
+  }
+  
+  *::-webkit-scrollbar-thumb:hover {
+    @apply scale-110; /* Color of the thumb on hover */
+  }
+  
+  * {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #E6DCFD #1a1a1a; /* Firefox: thumb color, track color */
   }
 }

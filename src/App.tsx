@@ -12,7 +12,8 @@ import RootLayout from "./layouts/RootLayout.tsx";
 import PageNotFound from "./pages/PageNotFound.tsx";
 import Homepage from "./pages/Homepage.tsx";
 import BlankForm from "./pages/BlankForm.tsx";
-import ViewForm from "./components/blankForm/ViewForm.tsx";
+import ViewForm from "./components/viewForm/ViewForm.tsx";
+import AuthPage from "./pages/AuthPage.tsx";
 
 function App() {
   const router = createBrowserRouter(
@@ -24,6 +25,8 @@ function App() {
           element={<BlankForm />}
           // action={blankFormAction}
         />
+        <Route path="auth" element={<AuthPage />} />
+
         <Route path="form/:id" element={<ViewForm />} />
         {/* <Route path="responses/:id" element={<Responses />} /> */}
         <Route path="*" element={<PageNotFound />} />
