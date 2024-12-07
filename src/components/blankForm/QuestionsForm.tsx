@@ -5,28 +5,55 @@ import Theme from "../../theme/Theme";
 import QuestionsUI from "./QuestionsUI";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/rootReducer";
-import { questionsActions } from "../../store/questionsSlice";
+import { formsActions } from "../../store/formsSlice";
+// import selectQuestionsByFormId from "../SelectedQuestionsByFormId";
 // import { useEffect } from "react";
 // import axios from "axios";
 // import { formSliceActions } from "../../store/formSlice";
 
 export default function QuestionsForm() {
   const dispatch = useDispatch();
+
+  const currentFormId = useSelector(
+    (state: RootState) => state.forms.currentFormId
+  );
+
   // const questions = useSelector((state: RootState) => state.questions.questions);
-  const formTitle = useSelector(
-    (state: RootState) => state.questions.formTitle
+  const formTitle = useSelector((state: RootState) =>
+    currentFormId
+      ? state.forms.forms.find((form) => form.formId === currentFormId)
+          ?.formTitle
+      : ""
   );
-  const formDescription = useSelector(
-    (state: RootState) => state.questions.formDescription
+  const formDescription = useSelector((state: RootState) =>
+    currentFormId
+      ? state.forms.forms.find((form) => form.formId === currentFormId)
+          ?.formDescription
+      : ""
   );
-  //   const formId = useSelector((state: RootState) => state.questions.formId);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(questionsActions.setFormTitle(e.target.value));
+    if (currentFormId) {
+      dispatch(
+        formsActions.setFormTitle({
+          formId: currentFormId,
+          formTitle: e.target.value,
+        })
+      );
+    }
   };
+
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(questionsActions.setFormDescription(e.target.value));
+    if (currentFormId) {
+      dispatch(
+        formsActions.setFormDescription({
+          formId: currentFormId,
+          formDescription: e.target.value,
+        })
+      );
+    }
   };
+
   // useEffect(()=>{
   //     async function FetchData(){
   //         const req = await axios.get(`http://example.com/example/${formId}`);
@@ -64,7 +91,7 @@ export default function QuestionsForm() {
             </div>
           </div>
 
-          <QuestionsUI />
+          {currentFormId && <QuestionsUI />}
           {/* <Button variant="contained" color="primary" onClick={commitToDB}>Create form</Button> */}
         </div>
       </div>

@@ -1,35 +1,64 @@
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store/rootReducer";
-import { questionsActions } from "../../../store/questionsSlice";
+import { formsActions } from "../../../store/formsSlice";
 import { Input } from "@mui/material";
+import selectQuestionsByFormId from "../../SelectedQuestionsByFormId";
 
-export default function AnswerInputs({ index }: { index: number }) {
+export default function AnswerInputs({ questionId }: { questionId: string }) {
   const dispatch = useDispatch();
-  const question = useSelector(
-    (state: RootState) => state.questions.questions[index]
+  const currentFormId = useSelector(
+    (state: RootState) => state.forms.currentFormId
   );
+
+  const questions = useSelector((state: RootState) =>
+    currentFormId ? selectQuestionsByFormId(state, currentFormId) : []
+  );
+
+  const question = questions.find((q) => q.id === questionId);
+
+  if (!question) {
+    return <div>Question not found</div>;
+  }
 
   // Function to handle input change and dispatch based on question type
   const handleInputChange = (value: string | number) => {
     switch (question.questionType) {
       case "shortAnswer":
         dispatch(
-          questionsActions.changeShortAnswer({ answer: String(value), index })
+          formsActions.changeShortAnswer({
+            formId: currentFormId,
+            answer: String(value),
+            questionId: question.id,
+          })
         );
         break;
       case "longAnswer":
         dispatch(
-          questionsActions.changeLongAnswer({ answer: String(value), index })
+          formsActions.changeLongAnswer({
+            formId: currentFormId,
+            answer: String(value),
+            questionId: question.id,
+          })
         );
         break;
       case "date":
-        dispatch(questionsActions.changeDate({ date: String(value), index }));
+        dispatch(
+          formsActions.changeDate({
+            formId: currentFormId,
+            date: String(value),
+            questionId: question.id,
+          })
+        );
         break;
       case "phoneNumber":
         // const phoneNumber = typeof value === 'string' ? parseInt(value, 10) : value;
         // dispatch(questionsActions.changePhoneNumber({ number: isNaN(phoneNumber) ? null : phoneNumber, index }));
         dispatch(
-          questionsActions.changePhoneNumber({ number: Number(value), index })
+          formsActions.changePhoneNumber({
+            formId: currentFormId,
+            number: Number(value),
+            questionId: question.id,
+          })
         );
         break;
       default:

@@ -3,31 +3,73 @@ import { RootState } from "../../../store/rootReducer";
 import { Button, IconButton } from "@mui/material";
 import CropOriginalOutlined from "@mui/icons-material/CropOriginalOutlined";
 import Close from "@mui/icons-material/Close";
-import { questionsActions } from "../../../store/questionsSlice";
+import { formsActions } from "../../../store/formsSlice";
+import selectQuestionsByFormId from "../../SelectedQuestionsByFormId";
 
-export default function RadioCheckboxOptions({ index }: { index: number }) {
+export default function RadioCheckboxOptions({
+  questionId,
+}: {
+  questionId: string;
+}) {
   const dispatch = useDispatch();
-  const questions = useSelector(
-    (state: RootState) => state.questions.questions
+  const currentFormId = useSelector(
+    (state: RootState) => state.forms.currentFormId
   );
-  const question = questions[index];
 
-  const removeOption = (i: number, j: number) => {
-    dispatch(questionsActions.removeOption({ i, j }));
+  const questions = useSelector((state: RootState) =>
+    currentFormId ? selectQuestionsByFormId(state, currentFormId) : []
+  );
+
+  const question = questions.find((q) => q.id === questionId);
+
+  if (!question) {
+    return <div>Question not found</div>;
+  }
+
+  const removeOption = (questionId: string, optionIndex: number) => {
+    if (currentFormId) {
+      dispatch(
+        formsActions.removeOption({
+          formId: currentFormId,
+          questionId,
+          optionIndex,
+        })
+      );
+    }
   };
   const handleRadioChange = (optionIndex: number) => {
-    dispatch(questionsActions.setRadioOption({ index, optionIndex }));
+    if (currentFormId)
+      dispatch(
+        formsActions.setRadioOption({
+          formId: currentFormId,
+          questionId,
+          optionIndex,
+        })
+      );
   };
   const handleCheckboxChange = (optionIndex: number) => {
-    dispatch(questionsActions.toggleCheckbox({ index, optionIndex }));
+    if (currentFormId)
+      dispatch(
+        formsActions.toggleCheckbox({
+          formId: currentFormId,
+          questionId,
+          optionIndex,
+        })
+      );
   };
   //   const changeOptionValues = (text: string, i: number, j: number) => {
   //     dispatch(questionsActions.changeOptionValues({ text, i, j }));
   //   };
   const handleChangeOptionValue = (text: string, optionIndex: number) => {
-    dispatch(
-      questionsActions.changeOptionValues({ text, i: index, j: optionIndex })
-    );
+    if (currentFormId)
+      dispatch(
+        formsActions.changeOptionValues({
+          formId: currentFormId,
+          text,
+          questionId,
+          optionIndex,
+        })
+      );
   };
   //   const handleOptionToggle = (text: string, optionIndex: number) => {
   //     if (question.questionType === "radio") {
@@ -38,15 +80,16 @@ export default function RadioCheckboxOptions({ index }: { index: number }) {
   //       dispatch(questionsActions.toggleCheckbox({ index, optionIndex }));
   //     }
   //   };
-  const addOption = (index: number) => {
-    dispatch(questionsActions.addOption(index));
+  const addOption = (questionId: string) => {
+    if (currentFormId)
+      dispatch(formsActions.addOption({ formId: currentFormId, questionId }));
   };
 
   return (
     <>
       {question.options?.map((option, optionIndex) => (
         <div className="addQuestionBody flex items-center" key={optionIndex}>
-    <input
+          <input
             type={question.questionType}
             className="md:mr-5 mr-3"
             checked={
@@ -76,7 +119,7 @@ export default function RadioCheckboxOptions({ index }: { index: number }) {
           <IconButton>
             <CropOriginalOutlined sx={{ marginRight: 2 }} color="primary" />
           </IconButton>
-          <IconButton onClick={() => removeOption(index, optionIndex)}>
+          <IconButton onClick={() => removeOption(questionId, optionIndex)}>
             <Close color="warning" />
           </IconButton>
         </div>
@@ -87,7 +130,7 @@ export default function RadioCheckboxOptions({ index }: { index: number }) {
           <Button
             size="small"
             variant="outlined"
-            onClick={() => addOption(index)}
+            onClick={() => addOption(question.id)}
           >
             Add option
           </Button>

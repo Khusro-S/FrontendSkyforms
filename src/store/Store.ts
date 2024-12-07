@@ -1,10 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
-// import questionsSlice from "./questionsSlice";
-// import formSlice from "./formSlice";
 import rootReducer, { RootState } from "./rootReducer";
 
 const STORAGE_KEY = "persistentState";
-
 
 function saveToLocalStorage(state: RootState) {
   try {
@@ -45,8 +42,6 @@ Store.subscribe(() => {
   }, 1000); // 1 second delay
 });
 
-
-// export type RootState = ReturnType<typeof Store.getState>;
-// export type RootState = ReturnType<typeof rootReducer>;
 // export type AppDispatch = typeof Store.dispatch;
 export default Store;
+export type AppDispatch = typeof Store.dispatch;

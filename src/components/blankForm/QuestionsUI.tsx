@@ -31,17 +31,21 @@ import TextFields from "@mui/icons-material/TextFields";
 import FileUpload from "@mui/icons-material/FileUpload";
 import Phone from "@mui/icons-material/Phone";
 
-import { Question, questionsActions } from "../../store/questionsSlice";
+import { Question, formsActions } from "../../store/formsSlice";
 import RenderInputComponents from "./inputComponents/RenderInputComponents";
 import AnswerInputs from "./inputComponents/AnswerInputs";
 import FileUploadInput from "./inputComponents/FileUploadInput";
 import CheckBox from "@mui/icons-material/CheckBox";
 import CalendarMonth from "@mui/icons-material/CalendarMonth";
+import selectQuestionsByFormId from "../SelectedQuestionsByFormId";
 
 function QuestionsUI() {
-  const questions = useSelector(
-    (state: RootState) => state.questions.questions
-  );
+  const formId = useSelector((state: RootState) => state.forms.currentFormId);
+
+  const questions = useSelector((state: RootState) => {
+    return formId ? selectQuestionsByFormId(state, formId) : [];
+  });
+
   //   const [questionTypeSelect, setQuestionTypeSelect] =
   //     useState("Multiple Choice");
 
@@ -49,9 +53,14 @@ function QuestionsUI() {
   //     setQuestionTypeSelect(event.target.value);
   //   };
 
-  const handleChange = (event: SelectChangeEvent, id: string) => {
+  const handleChange = (
+    formId: string,
+    event: SelectChangeEvent,
+    id: string
+  ) => {
     dispatch(
-      questionsActions.updateQuestionTypeSelect({
+      formsActions.updateQuestionTypeSelect({
+        formId: formId,
         questionId: id,
         questionTypeSelect: event.target.value as string,
       })
@@ -59,7 +68,7 @@ function QuestionsUI() {
   };
 
   // const handleChange = (value: string, index: number) => {
-  //     dispatch(questionsActions.updateQuestionType({ index, questionType: value }));
+  //     dispatch(formsActions.updateQuestionType({ index, questionType: value }));
   //     setQuestionTypeSelect(event.target.value);
   //   };
 
@@ -78,41 +87,45 @@ function QuestionsUI() {
 
   const dispatch = useDispatch();
 
-  const handleExpand = (i: number) => {
-    dispatch(questionsActions.handleExpand(i));
+  const handleExpand = (i: number, formId: string) => {
+    dispatch(formsActions.handleExpand({ Index: i, formId }));
   };
 
-  const changeQuestion = (text: string, index: number) => {
-    dispatch(questionsActions.changeQuestion({ text, index }));
+  const changeQuestion = (text: string, questionId: string, formId: string) => {
+    dispatch(formsActions.changeQuestion({ text, questionId, formId }));
+  };
+  const addQuestionType = (
+    formId: string,
+    questionId: string,
+    type: Question["questionType"]
+  ) => {
+    dispatch(formsActions.addQuestionType({ questionId, type, formId }));
   };
 
-  const addQuestionType = (index: number, type: Question["questionType"]) => {
-    dispatch(questionsActions.addQuestionType({ index, type }));
+  const copyQuestion = (questionId: string, formId: string) => {
+    dispatch(formsActions.copyQuestion({ questionId, formId }));
   };
 
-  const copyQuestion = (index: number) => {
-    dispatch(questionsActions.copyQuestion(index));
+  const addMoreQuestionField = (formId: string) => {
+    dispatch(formsActions.addMoreQuestionField({ formId }));
   };
 
-  const addMoreQuestionField = () => {
-    dispatch(questionsActions.addMoreQuestionField());
+  const requiredQuestion = (formId: string, questionId: string) => {
+    dispatch(formsActions.requiredQuestion({ questionId, formId }));
   };
 
-  const requiredQuestion = (index: number) => {
-    dispatch(questionsActions.requiredQuestion({ index }));
+  const deleteQuestion = (formId: string, questionId: string) => {
+    dispatch(formsActions.deleteQuestion({ questionId, formId }));
   };
 
-  const deleteQuestion = (index: number) => {
-    dispatch(questionsActions.deleteQuestion({ index }));
-  };
-
-  const onDragEnd = (result: DropResult) => {
+  const onDragEnd = (result: DropResult, formId: string) => {
     if (!result.destination) {
       return;
     }
 
     dispatch(
-      questionsActions.reorderQuestions({
+      formsActions.reorderQuestions({
+        formId,
         startIndex: result.source.index,
         endIndex: result.destination.index,
       })
@@ -122,7 +135,11 @@ function QuestionsUI() {
   const isSmallScreen = useMediaQuery("(max-width:600px)");
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
+    <DragDropContext
+      onDragEnd={(result) => {
+        if (formId) onDragEnd(result, formId);
+      }}
+    >
       <Droppable droppableId="questions-droppable">
         {(provided) => (
           <div
@@ -158,7 +175,9 @@ function QuestionsUI() {
                         expanded={question.open}
                         slotProps={{ transition: { unmountOnExit: true } }}
                         className="md:p-3 p-1"
-                        onChange={() => handleExpand(index)}
+                        onChange={() => {
+                          if (formId) handleExpand(index, formId);
+                        }}
                       >
                         <div
                           ref={
@@ -201,9 +220,9 @@ function QuestionsUI() {
                                       )
                                     )
                                   ) : question.questionType === "fileUpload" ? (
-                                    <FileUploadInput index={index} />
+                                    <FileUploadInput questionId={question.id} />
                                   ) : (
-                                    <AnswerInputs index={index} />
+                                    <AnswerInputs questionId={question.id} />
                                   )}
                                 </div>
                               </AccordionDetails>
@@ -258,7 +277,13 @@ function QuestionsUI() {
                                         type="text"
                                         value={question.questionText}
                                         onChange={(e) => {
-                                          changeQuestion(e.target.value, index);
+                                          if (formId) {
+                                            changeQuestion(
+                                              e.target.value,
+                                              question.id,
+                                              formId
+                                            );
+                                          }
                                         }}
                                         placeholder="Question"
                                         className="w-[95%] outline-none border-b border-solid border-purple focus:border-b-4 md:py-2 py-1 bg-black transition-all ease-linear duration-200 md:text-2xl sm:text-xl text-lg"
@@ -267,9 +292,11 @@ function QuestionsUI() {
                                     <CropOriginalOutlined />
                                   </div>
                                   <Select
-                                    onChange={(e) =>
-                                      handleChange(e, question.id)
-                                    }
+                                    onChange={(e) => {
+                                      if (formId) {
+                                        handleChange(formId, e, question.id);
+                                      }
+                                    }}
                                     value={question.questionTypeSelect}
                                     className="md:text-4xl sm:text-3xl text-2xl place-self-start mb-2"
                                     variant="outlined"
@@ -278,7 +305,13 @@ function QuestionsUI() {
                                     <MenuItem
                                       value={"Multiple Choice"}
                                       onClick={() => {
-                                        addQuestionType(index, "radio");
+                                        if (formId) {
+                                          addQuestionType(
+                                            formId,
+                                            question.id,
+                                            "radio"
+                                          );
+                                        }
                                       }}
                                     >
                                       <CheckCircle
@@ -306,7 +339,13 @@ function QuestionsUI() {
                                     <MenuItem
                                       value={"Check Box"}
                                       onClick={() => {
-                                        addQuestionType(index, "checkbox");
+                                        if (formId) {
+                                          addQuestionType(
+                                            formId,
+                                            question.id,
+                                            "checkbox"
+                                          );
+                                        }
                                       }}
                                     >
                                       <CheckBox
@@ -334,7 +373,17 @@ function QuestionsUI() {
                                     <MenuItem
                                       value={"Short Answer"}
                                       onClick={() => {
-                                        addQuestionType(index, "shortAnswer");
+                                        if (formId) {
+                                          addQuestionType(
+                                            formId,
+                                            question.id,
+                                            "shortAnswer"
+                                          );
+                                        } else {
+                                          console.warn(
+                                            "formId is null. Cannot add question type."
+                                          );
+                                        }
                                       }}
                                     >
                                       <ShortText
@@ -361,7 +410,13 @@ function QuestionsUI() {
                                     <MenuItem
                                       value={"Paragraph"}
                                       onClick={() => {
-                                        addQuestionType(index, "longAnswer");
+                                        if (formId) {
+                                          addQuestionType(
+                                            formId,
+                                            question.id,
+                                            "longAnswer"
+                                          );
+                                        }
                                       }}
                                     >
                                       <Subject
@@ -389,7 +444,13 @@ function QuestionsUI() {
                                     <MenuItem
                                       value={"File Upload"}
                                       onClick={() => {
-                                        addQuestionType(index, "fileUpload");
+                                        if (formId) {
+                                          addQuestionType(
+                                            formId,
+                                            question.id,
+                                            "fileUpload"
+                                          );
+                                        }
                                       }}
                                     >
                                       <FileUpload
@@ -417,7 +478,13 @@ function QuestionsUI() {
                                     <MenuItem
                                       value={"date"}
                                       onClick={() => {
-                                        addQuestionType(index, "date");
+                                        if (formId) {
+                                          addQuestionType(
+                                            formId,
+                                            question.id,
+                                            "date"
+                                          );
+                                        }
                                       }}
                                     >
                                       <CalendarMonth
@@ -445,7 +512,13 @@ function QuestionsUI() {
                                     <MenuItem
                                       value={"Phone"}
                                       onClick={() => {
-                                        addQuestionType(index, "phoneNumber");
+                                        if (formId) {
+                                          addQuestionType(
+                                            formId,
+                                            question.id,
+                                            "phoneNumber"
+                                          );
+                                        }
                                       }}
                                     >
                                       <Phone
@@ -472,12 +545,16 @@ function QuestionsUI() {
                                   </Select>
                                 </div>
 
-                                <RenderInputComponents index={index} />
+                                <RenderInputComponents
+                                  questionId={question.id}
+                                />
 
                                 <div className="addQuestionFooterBottomRight border-t border-solid border-purple h-full pt-1 flex items-center sm:place-self-end place-content-center max-sm:w-full w-max mt-3">
                                   <IconButton
                                     onClick={() => {
-                                      copyQuestion(index);
+                                      if (formId) {
+                                        copyQuestion(question.id, formId);
+                                      }
                                     }}
                                   >
                                     <FilterNone
@@ -503,7 +580,9 @@ function QuestionsUI() {
                                   </IconButton>
                                   <IconButton
                                     onClick={() => {
-                                      deleteQuestion(index);
+                                      if (formId) {
+                                        deleteQuestion(formId, question.id);
+                                      }
                                     }}
                                   >
                                     <Delete
@@ -530,7 +609,9 @@ function QuestionsUI() {
                                   <div className="w-[2px] h-full bg-purple mx-2" />
                                   <span
                                     onClick={() => {
-                                      requiredQuestion(index);
+                                      if (formId) {
+                                        requiredQuestion(formId, question.id);
+                                      }
                                     }}
                                   >
                                     Required{" "}
@@ -545,7 +626,9 @@ function QuestionsUI() {
                               <div className="questionEdit flex flex-col gap-3 bg-blackbg h-full py-2 px-1 rounded-xl">
                                 <AddCircleOutline
                                   color="primary"
-                                  onClick={addMoreQuestionField}
+                                  onClick={() => {
+                                    if (formId) addMoreQuestionField(formId);
+                                  }}
                                   className="hover:cursor-pointer hover:scale-110 transition-all ease-linear duration-200"
                                 />
                                 <CropOriginalOutlined color="primary" />
