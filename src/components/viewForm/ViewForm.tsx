@@ -1,3 +1,10 @@
+import { ThemeProvider } from "@emotion/react";
+import Theme from "../../theme/Theme";
+
 export default function ViewForm() {
-  return <div>ViewForm</div>;
+  return (
+    <ThemeProvider theme={Theme}>
+      <div>ViewForm</div>
+    </ThemeProvider>
+  );
 }

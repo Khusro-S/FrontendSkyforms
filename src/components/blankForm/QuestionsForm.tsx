@@ -1,22 +1,65 @@
 // import { useEffect } from "react";
-import { ThemeProvider } from "@mui/material";
+import { Button, ThemeProvider } from "@mui/material";
 
 import Theme from "../../theme/Theme";
 import QuestionsUI from "./QuestionsUI";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/rootReducer";
-import { formsActions } from "../../store/formsSlice";
+import { createForm, formsActions } from "../../store/formsSlice";
+import { AppDispatch } from "../../store/Store";
+import { useNavigate } from "react-router-dom";
 // import selectQuestionsByFormId from "../SelectedQuestionsByFormId";
 // import { useEffect } from "react";
 // import axios from "axios";
 // import { formSliceActions } from "../../store/formSlice";
 
 export default function QuestionsForm() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+
+  const { error, loading } = useSelector((state: RootState) => state.forms);
 
   const currentFormId = useSelector(
     (state: RootState) => state.forms.currentFormId
   );
+  const currentForm = useSelector((state: RootState) =>
+    state.forms.forms.find((form) => form.formId === currentFormId)
+  );
+  // const { forms, error, loading } = useSelector(
+  //   (state: RootState) => state.forms
+  // );
+
+  const handleCreateForm = async () => {
+    if (!currentForm) {
+      alert("No form data found to create.");
+      return;
+    }
+    const { formId, formTitle, formDescription, questions } = currentForm;
+
+    if (!formTitle || !formDescription || questions.length === 0) {
+      alert(
+        "Please fill in all the required fields and add at least one question."
+      );
+      return;
+    }
+
+    const formData = {
+      formId,
+      formTitle,
+      formDescription,
+      questions,
+      lastOpened: new Date().toISOString(),
+    };
+
+    try {
+      await dispatch(createForm(formData)).unwrap(); // Unwrap to handle errors directly
+      alert("Form created successfully!");
+      navigate("/");
+    } catch (error) {
+      console.error("Failed to create form:", error);
+      alert("There was an error creating the form.");
+    }
+  };
 
   // const questions = useSelector((state: RootState) => state.questions.questions);
   const formTitle = useSelector((state: RootState) =>
@@ -92,7 +135,14 @@ export default function QuestionsForm() {
           </div>
 
           {currentFormId && <QuestionsUI />}
-          {/* <Button variant="contained" color="primary" onClick={commitToDB}>Create form</Button> */}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleCreateForm}
+          >
+            {loading && "Creating form"}
+            {!loading && !error && "Create Form"}
+          </Button>
         </div>
       </div>
     </ThemeProvider>

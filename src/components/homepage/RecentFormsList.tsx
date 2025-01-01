@@ -100,7 +100,7 @@ export default function RecentFormsList() {
     <div className="px-[5.5rem] py-5">
       <h2 className="md:text-xl text-lg mb-5"> Recent forms</h2>
       {loading && <p>Loading forms...</p>}
-      {error && <p>Error: {error}</p>}
+      {!loading && error && <p>Error: {error}</p>}
 
       <div className="recentforms w-full grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-5">
         {/* {dummyData.length > 0 ? (

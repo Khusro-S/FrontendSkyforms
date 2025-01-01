@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { fetchForms } from "../api/api";
+import { createFormAPI, fetchAllForms, fetchFormByIdAPI } from "../api/api";
 
 export interface FileData {
   name: string;
@@ -82,11 +82,27 @@ export const initialStateForms: FormsState = {
 //   currentFormId: null,
 // };
 
-export const getForms = createAsyncThunk("forms/getForms", async () => {
-  const response = await fetchForms();
+export const getForms = createAsyncThunk("forms/getAllForms", async () => {
+  const response = await fetchAllForms();
   const data = await response;
   return data as Form[];
 });
+
+export const createForm = createAsyncThunk<Form, Form>(
+  "forms/createForm",
+  async (formData: Form) => {
+    const response = await createFormAPI(formData);
+    return response;
+  }
+);
+
+export const fetchFormById = createAsyncThunk(
+  "forms/fetchFormById",
+  async (formId: string) => {
+    const response = await fetchFormByIdAPI(formId);
+    return response as Form; // The server should return the form with the provided ID
+  }
+);
 
 const formsSlice = createSlice({
   name: "forms",
@@ -714,6 +730,33 @@ const formsSlice = createSlice({
       .addCase(getForms.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to fetch forms";
+        console.log("Error: ", action.error);
+      })
+      .addCase(createForm.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(createForm.fulfilled, (state, action) => {
+        state.loading = false;
+        state.forms.push(action.payload);
+      })
+      .addCase(createForm.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to create form";
+        console.log("Error: ", action.error);
+      })
+      .addCase(fetchFormById.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchFormById.fulfilled, (state, action) => {
+        state.loading = false;
+        const fetchedForm = action.payload;
+        state.forms = state.forms.map((form) =>
+          form.formId === fetchedForm.formId ? fetchedForm : form
+        );
+      })
+      .addCase(fetchFormById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to fetch form";
         console.log("Error: ", action.error);
       });
   },
