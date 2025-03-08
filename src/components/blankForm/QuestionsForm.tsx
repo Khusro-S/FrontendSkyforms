@@ -53,6 +53,7 @@ export default function QuestionsForm() {
 
     try {
       await dispatch(createForm(formData)).unwrap(); // Unwrap to handle errors directly
+
       alert("Form created successfully!");
       navigate("/");
     } catch (error) {
@@ -140,8 +141,7 @@ export default function QuestionsForm() {
             color="primary"
             onClick={handleCreateForm}
           >
-            {loading && "Creating form"}
-            {!loading && !error && "Create Form"}
+            {loading && !error ? "Creating form" : "Create Form"}
           </Button>
         </div>
       </div>

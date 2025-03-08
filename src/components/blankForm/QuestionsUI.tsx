@@ -31,13 +31,14 @@ import TextFields from "@mui/icons-material/TextFields";
 import FileUpload from "@mui/icons-material/FileUpload";
 import Phone from "@mui/icons-material/Phone";
 
-import { Question, formsActions } from "../../store/formsSlice";
+import { formsActions } from "../../store/formsSlice";
 import RenderInputComponents from "./inputComponents/RenderInputComponents";
 import AnswerInputs from "./inputComponents/AnswerInputs";
 import FileUploadInput from "./inputComponents/FileUploadInput";
 import CheckBox from "@mui/icons-material/CheckBox";
 import CalendarMonth from "@mui/icons-material/CalendarMonth";
 import selectQuestionsByFormId from "../SelectedQuestionsByFormId";
+import { QuestionType } from "../../types/types";
 
 function QuestionsUI() {
   const formId = useSelector((state: RootState) => state.forms.currentFormId);
@@ -97,7 +98,7 @@ function QuestionsUI() {
   const addQuestionType = (
     formId: string,
     questionId: string,
-    type: Question["questionType"]
+    type: QuestionType
   ) => {
     dispatch(formsActions.addQuestionType({ questionId, type, formId }));
   };
@@ -219,7 +220,8 @@ function QuestionsUI() {
                                         />
                                       )
                                     )
-                                  ) : question.questionType === "fileUpload" ? (
+                                  ) : question.questionType ===
+                                    QuestionType.FILE_UPLOAD ? (
                                     <FileUploadInput questionId={question.id} />
                                   ) : (
                                     <AnswerInputs questionId={question.id} />
@@ -309,7 +311,7 @@ function QuestionsUI() {
                                           addQuestionType(
                                             formId,
                                             question.id,
-                                            "radio"
+                                            QuestionType.RADIO
                                           );
                                         }
                                       }}
@@ -343,7 +345,7 @@ function QuestionsUI() {
                                           addQuestionType(
                                             formId,
                                             question.id,
-                                            "checkbox"
+                                            QuestionType.CHECKBOX
                                           );
                                         }
                                       }}
@@ -377,7 +379,7 @@ function QuestionsUI() {
                                           addQuestionType(
                                             formId,
                                             question.id,
-                                            "shortAnswer"
+                                            QuestionType.SHORT_ANSWER
                                           );
                                         } else {
                                           console.warn(
@@ -414,7 +416,7 @@ function QuestionsUI() {
                                           addQuestionType(
                                             formId,
                                             question.id,
-                                            "longAnswer"
+                                            QuestionType.LONG_ANSWER
                                           );
                                         }
                                       }}
@@ -448,7 +450,7 @@ function QuestionsUI() {
                                           addQuestionType(
                                             formId,
                                             question.id,
-                                            "fileUpload"
+                                            QuestionType.FILE_UPLOAD
                                           );
                                         }
                                       }}
@@ -482,7 +484,7 @@ function QuestionsUI() {
                                           addQuestionType(
                                             formId,
                                             question.id,
-                                            "date"
+                                            QuestionType.DATE
                                           );
                                         }
                                       }}
@@ -516,7 +518,7 @@ function QuestionsUI() {
                                           addQuestionType(
                                             formId,
                                             question.id,
-                                            "phoneNumber"
+                                            QuestionType.PHONE_NUMBER
                                           );
                                         }
                                       }}

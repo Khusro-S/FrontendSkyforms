@@ -1,87 +1,26 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { createFormAPI, fetchAllForms, fetchFormByIdAPI } from "../api/api";
-
-export interface FileData {
-  name: string;
-  size: number;
-  type: string;
-  url: string;
-}
-
-export interface Option {
-  optionText: string;
-}
-
-export interface Question {
-  id: string;
-  questionText: string;
-  questionType:
-    | "radio"
-    | "checkbox"
-    | "shortAnswer"
-    | "longAnswer"
-    | "fileUpload"
-    | "date"
-    | "phoneNumber";
-  questionTypeSelect: string;
-  options?: Option[];
-  selectedOptions?: string[];
-  // placeholderText?: string;
-  shortAnswer?: string;
-  longAnswer?: string;
-  date?: string;
-  phoneNumber?: number | null;
-  file?: FileData;
-  open: boolean;
-  required: boolean;
-}
-
-export interface Form {
-  formId: string;
-  formTitle: string;
-  formDescription: string;
-  questions: Question[];
-  lastOpened: string | null;
-}
+import { FileData, Form, Question, QuestionType } from "../types/types";
+import {
+  createFormAPI,
+  deleteFormAPI,
+  fetchAllForms,
+  fetchFormByIdAPI,
+  updateFormLastOpenedAPI,
+} from "../api/api";
 
 interface FormsState {
   forms: Form[];
-  loading: boolean;
-  error: string | null;
+  error?: string | null;
+  loading?: boolean;
   currentFormId: string | null;
 }
 
 export const initialStateForms: FormsState = {
   forms: [],
-  loading: false,
   error: null,
+  loading: false,
   currentFormId: null,
 };
-
-// export const initialStateQuestion: QuestionsState = {
-//   forms: [
-//     {
-//       formId: crypto.randomUUID(),
-//       formTitle: "Untitled form",
-//       formDescription: "Untitled description",
-//       questions: [
-//         {
-//           id: crypto.randomUUID(),
-//           questionText: "Untitled Question",
-//           questionType: "radio",
-//           questionTypeSelect: "Multiple Choice",
-//           options: [{ optionText: "Untitled Option" }],
-//           open: true,
-//           required: false,
-//         },
-//       ],
-//     },
-//   ],
-//   loading: false,
-//   error: null,
-//   currentFormId: null,
-// };
-
 export const getForms = createAsyncThunk("forms/getAllForms", async () => {
   const response = await fetchAllForms();
   const data = await response;
@@ -104,6 +43,24 @@ export const fetchFormById = createAsyncThunk(
   }
 );
 
+export const updateLastOpenedThunk = createAsyncThunk(
+  "forms/updateLastOpened",
+  async ({ formId, lastOpened }: { formId: string; lastOpened: Date }) => {
+    // console.log(lastOpened);
+    const lastOpenedString = lastOpened.toISOString();
+    await updateFormLastOpenedAPI(formId, lastOpenedString);
+    return { formId, lastOpened: lastOpenedString };
+  }
+);
+
+export const deleteFormThunk = createAsyncThunk(
+  "forms/deleteForm",
+  async (formId: string) => {
+    await deleteFormAPI(formId);
+    return formId;
+  }
+);
+
 const formsSlice = createSlice({
   name: "forms",
   initialState: initialStateForms,
@@ -122,21 +79,14 @@ const formsSlice = createSlice({
       );
     },
 
-    updateForm(
-      state,
-      action: PayloadAction<{
-        formId: string;
-        formTitle: string;
-        formDescription: string;
-      }>
-    ) {
-      const form = state.forms.find((f) => f.formId === action.payload.formId);
-      if (form) {
-        form.formTitle = action.payload.formTitle;
-        form.formDescription = action.payload.formDescription;
+    updateForm(state, action: PayloadAction<Form>) {
+      const index = state.forms.findIndex(
+        (f) => f.formId === action.payload.formId
+      );
+      if (index !== -1) {
+        state.forms[index] = action.payload;
       }
     },
-
     setLastOpened(
       state,
       action: PayloadAction<{ formId: string; lastOpened: string }>
@@ -155,7 +105,7 @@ const formsSlice = createSlice({
         form.questions.push({
           id: crypto.randomUUID(),
           questionText: "Untitled question",
-          questionType: "radio",
+          questionType: QuestionType.RADIO,
           questionTypeSelect: "Multiple Choice",
           options: [{ optionText: "Untitled option" }],
           open: true,
@@ -214,8 +164,8 @@ const formsSlice = createSlice({
         const question = form.questions.find((q) => q.id === questionId);
         if (
           question &&
-          (question.questionType === "radio" ||
-            question.questionType === "checkbox")
+          (question.questionType === QuestionType.RADIO ||
+            question.questionType === QuestionType.CHECKBOX)
         ) {
           question.options = question.options || [];
           question.options.push({ optionText: "Untitled Option" });
@@ -237,8 +187,8 @@ const formsSlice = createSlice({
         const question = form.questions.find((q) => q.id === questionId);
         if (
           question &&
-          (question.questionType === "radio" ||
-            question.questionType === "checkbox") &&
+          (question.questionType === QuestionType.RADIO ||
+            question.questionType === QuestionType.CHECKBOX) &&
           question.options &&
           question.options.length > 1
         ) {
@@ -301,7 +251,7 @@ const formsSlice = createSlice({
       action: PayloadAction<{
         formId: string;
         questionId: string;
-        type: Question["questionType"];
+        type: QuestionType;
       }>
     ) => {
       const { formId, questionId, type } = action.payload;
@@ -311,42 +261,21 @@ const formsSlice = createSlice({
         const question = form.questions.find((q) => q.id === questionId);
         if (question) {
           question.questionType = type;
-          if (type === "radio" || type === "checkbox") {
+
+          question.options = undefined;
+          question.selectedOptions = undefined;
+          question.shortAnswer = undefined;
+          question.longAnswer = undefined;
+          question.date = undefined;
+          question.phoneNumber = null;
+          question.file = undefined;
+
+          if (type === QuestionType.RADIO || type === QuestionType.CHECKBOX) {
             question.options = [{ optionText: "Untitled Option" }];
-          } else {
-            question.options = undefined;
           }
         }
       }
     },
-
-    // changeOptionValues: (
-    //   state,
-    //   action: PayloadAction<{
-    //     formId: string;
-    //     text: string;
-    //     i: number;
-    //     j: number;
-    //   }>
-    // ) => {
-    //   const { formId, text, i, j } = action.payload;
-    //   const form = state.forms.find((f) => f.formId === formId);
-    //   if (!formId) {
-    //     console.warn("formId is null. Cannot set radio option.");
-    //     return state;
-    //   }
-    //   if (form) {
-    //     const question = form.questions[i];
-    //     if (
-    //       question &&
-    //       question.options &&
-    //       j >= 0 &&
-    //       j < question.options.length
-    //     ) {
-    //       question.options[j].optionText = text;
-    //     }
-    //   }
-    // },
     changeOptionValues: (
       state,
       action: PayloadAction<{
@@ -419,7 +348,7 @@ const formsSlice = createSlice({
           {
             id: crypto.randomUUID(),
             questionText: "Untitled Question",
-            questionType: "radio",
+            questionType: QuestionType.RADIO,
             questionTypeSelect: "Multiple Choice",
             options: [{ optionText: "Untitled Option" }],
             open: true,
@@ -479,7 +408,8 @@ const formsSlice = createSlice({
 
       if (form) {
         form.questions = form.questions.map((question) =>
-          question.id === questionId && question.questionType === "fileUpload"
+          question.id === questionId &&
+          question.questionType === QuestionType.FILE_UPLOAD
             ? { ...question, file }
             : question
         );
@@ -494,26 +424,13 @@ const formsSlice = createSlice({
       const form = state.forms.find((f) => f.formId === formId);
       if (form) {
         form.questions = form.questions.map((question) =>
-          question.id === questionId && question.questionType === "fileUpload"
+          question.id === questionId &&
+          question.questionType === QuestionType.FILE_UPLOAD
             ? { ...question, file: undefined }
             : question
         );
       }
     },
-
-    // changeShortAnswer: (
-    //   state,
-    //   action: PayloadAction<{ formId: string; answer: string; index: number }>
-    // ) => {
-    //   const { formId, answer, index } = action.payload;
-    //   const form = state.forms.find((f) => f.formId === formId);
-    //   if (form) {
-    //     const question = form.questions[index];
-    //     if (question && question.questionType === "shortAnswer") {
-    //       question.shortAnswer = answer;
-    //     }
-    //   }
-    // },
 
     changeShortAnswer: (
       state,
@@ -532,26 +449,11 @@ const formsSlice = createSlice({
 
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
-        if (question && question.questionType === "shortAnswer") {
+        if (question && question.questionType === QuestionType.SHORT_ANSWER) {
           question.shortAnswer = answer;
         }
       }
     },
-
-    // changeLongAnswer: (
-    //   state,
-    //   action: PayloadAction<{ formId: string; answer: string; index: number }>
-    // ) => {
-    //   const { formId, answer, index } = action.payload;
-    //   const form = state.forms.find((f) => f.formId === formId);
-    //   if (form) {
-    //     const question = form.questions[index];
-    //     if (question && question.questionType === "longAnswer") {
-    //       question.longAnswer = answer;
-    //     }
-    //   }
-    // },
-
     changeLongAnswer: (
       state,
       action: PayloadAction<{
@@ -570,7 +472,7 @@ const formsSlice = createSlice({
 
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
-        if (question && question.questionType === "longAnswer") {
+        if (question && question.questionType === QuestionType.LONG_ANSWER) {
           question.longAnswer = answer;
         }
       }
@@ -593,7 +495,7 @@ const formsSlice = createSlice({
       const form = state.forms.find((f) => f.formId === formId);
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
-        if (question && question.questionType === "date") {
+        if (question && question.questionType === QuestionType.DATE) {
           question.date = date;
         }
       }
@@ -615,7 +517,7 @@ const formsSlice = createSlice({
       const form = state.forms.find((f) => f.formId === formId);
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
-        if (question && question.questionType === "phoneNumber") {
+        if (question && question.questionType === QuestionType.PHONE_NUMBER) {
           question.phoneNumber = number;
         }
       }
@@ -632,15 +534,7 @@ const formsSlice = createSlice({
         );
       }
     },
-    //   toggleOpenSingleQuestion(state, action: PayloadAction<{ formId: string; questionId: string }>) {
-    //     const form = state.forms.find((f) => f.formId === action.payload.formId);
-    //     if (form) {
-    //       form.questions.forEach((question) => (question.open = false));
-    //       const question = form.questions.find((q) => q.id === action.payload.questionId);
-    //       if (question) question.open = true;
-    //     }
-    //   },
-    // },
+
     toggleCheckbox: (
       state,
       action: PayloadAction<{
@@ -700,7 +594,11 @@ const formsSlice = createSlice({
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
 
-        if (question && question.questionType === "radio" && question.options) {
+        if (
+          question &&
+          question.questionType === QuestionType.RADIO &&
+          question.options
+        ) {
           // Ensure only one selected option by replacing selectedOptions
           question.selectedOptions = [question.options[optionIndex].optionText];
         }
@@ -757,6 +655,36 @@ const formsSlice = createSlice({
       .addCase(fetchFormById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to fetch form";
+        console.log("Error: ", action.error);
+      })
+      .addCase(updateLastOpenedThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateLastOpenedThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        const { formId, lastOpened } = action.payload;
+        const form = state.forms.find((f) => f.formId === formId);
+        if (form) {
+          form.lastOpened = new Date(lastOpened).toISOString();
+        }
+      })
+      .addCase(updateLastOpenedThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to update last opened";
+        console.log("Error: ", action.error);
+      })
+      .addCase(deleteFormThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteFormThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.forms = state.forms.filter(
+          (form) => form.formId !== action.payload
+        );
+      })
+      .addCase(deleteFormThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to delete form";
         console.log("Error: ", action.error);
       });
   },
