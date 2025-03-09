@@ -19,20 +19,27 @@ export const createFormAPI = async (formData: Form): Promise<Form> => {
 };
 
 export const updateFormAPI = async (
-  formId: string,
+  id: string,
   formData: Form
 ): Promise<Form> => {
-  const response = await axios.put(`${API_URL}/forms/${formId}`, formData);
+  const response = await axios.put(`${API_URL}/forms/${id}`, formData);
   return response.data;
 };
 
 export const updateFormLastOpenedAPI = async (
-  formId: string,
+  id: string,
   lastOpened: string
 ): Promise<void> => {
-  await axios.patch(`${API_URL}/forms/${formId}`, { lastOpened });
+  await axios.patch(`${API_URL}/forms/${id}`, { lastOpened });
 };
 
 export const deleteFormAPI = async (formId: string): Promise<void> => {
   await axios.delete(`${API_URL}/forms/${formId}`);
+};
+
+export const updateFormTitleAPI = async (
+  formId: string,
+  formTitle: string
+): Promise<void> => {
+  await axios.patch(`${API_URL}/forms/${formId}`, { formTitle });
 };

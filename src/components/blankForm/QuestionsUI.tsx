@@ -10,8 +10,6 @@ import {
   AccordionDetails,
   AccordionSummary,
   FormControlLabel,
-  Select,
-  MenuItem,
   Switch,
   IconButton,
   useMediaQuery,
@@ -20,39 +18,26 @@ import {
 
 import Typography from "@mui/material/Typography";
 
-import CheckCircle from "@mui/icons-material/CheckCircle";
-import ShortText from "@mui/icons-material/ShortText";
-import Subject from "@mui/icons-material/Subject";
 import CropOriginalOutlined from "@mui/icons-material/CropOriginalOutlined";
 import FilterNone from "@mui/icons-material/FilterNone";
 import Delete from "@mui/icons-material/Delete";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
 import TextFields from "@mui/icons-material/TextFields";
-import FileUpload from "@mui/icons-material/FileUpload";
-import Phone from "@mui/icons-material/Phone";
 
 import { formsActions } from "../../store/formsSlice";
 import RenderInputComponents from "./inputComponents/RenderInputComponents";
 import AnswerInputs from "./inputComponents/AnswerInputs";
 import FileUploadInput from "./inputComponents/FileUploadInput";
-import CheckBox from "@mui/icons-material/CheckBox";
-import CalendarMonth from "@mui/icons-material/CalendarMonth";
 import selectQuestionsByFormId from "../SelectedQuestionsByFormId";
 import { QuestionType } from "../../types/types";
+import QuestionTypeSelect from "./QuestionTypeSelect";
 
 function QuestionsUI() {
-  const formId = useSelector((state: RootState) => state.forms.currentFormId);
+  const id = useSelector((state: RootState) => state.forms.currentFormId);
 
   const questions = useSelector((state: RootState) => {
-    return formId ? selectQuestionsByFormId(state, formId) : [];
+    return id ? selectQuestionsByFormId(state, id) : [];
   });
-
-  //   const [questionTypeSelect, setQuestionTypeSelect] =
-  //     useState("Multiple Choice");
-
-  //   const handleChange = (event: SelectChangeEvent) => {
-  //     setQuestionTypeSelect(event.target.value);
-  //   };
 
   const handleChange = (
     formId: string,
@@ -61,17 +46,12 @@ function QuestionsUI() {
   ) => {
     dispatch(
       formsActions.updateQuestionTypeSelect({
-        formId: formId,
+        id: formId,
         questionId: id,
         questionTypeSelect: event.target.value as string,
       })
     );
   };
-
-  // const handleChange = (value: string, index: number) => {
-  //     dispatch(formsActions.updateQuestionType({ index, questionType: value }));
-  //     setQuestionTypeSelect(event.target.value);
-  //   };
 
   const lastQuestionRef = useRef<HTMLDivElement | null>(null);
 
@@ -88,45 +68,45 @@ function QuestionsUI() {
 
   const dispatch = useDispatch();
 
-  const handleExpand = (i: number, formId: string) => {
-    dispatch(formsActions.handleExpand({ Index: i, formId }));
+  const handleExpand = (i: number, id: string) => {
+    dispatch(formsActions.handleExpand({ Index: i, id }));
   };
 
-  const changeQuestion = (text: string, questionId: string, formId: string) => {
-    dispatch(formsActions.changeQuestion({ text, questionId, formId }));
+  const changeQuestion = (text: string, questionId: string, id: string) => {
+    dispatch(formsActions.changeQuestion({ text, questionId, id }));
   };
   const addQuestionType = (
-    formId: string,
+    id: string,
     questionId: string,
     type: QuestionType
   ) => {
-    dispatch(formsActions.addQuestionType({ questionId, type, formId }));
+    dispatch(formsActions.addQuestionType({ questionId, type, id }));
   };
 
-  const copyQuestion = (questionId: string, formId: string) => {
-    dispatch(formsActions.copyQuestion({ questionId, formId }));
+  const copyQuestion = (questionId: string, id: string) => {
+    dispatch(formsActions.copyQuestion({ questionId, id }));
   };
 
-  const addMoreQuestionField = (formId: string) => {
-    dispatch(formsActions.addMoreQuestionField({ formId }));
+  const addMoreQuestionField = (id: string) => {
+    dispatch(formsActions.addMoreQuestionField({ id }));
   };
 
-  const requiredQuestion = (formId: string, questionId: string) => {
-    dispatch(formsActions.requiredQuestion({ questionId, formId }));
+  const requiredQuestion = (id: string, questionId: string) => {
+    dispatch(formsActions.requiredQuestion({ questionId, id }));
   };
 
-  const deleteQuestion = (formId: string, questionId: string) => {
-    dispatch(formsActions.deleteQuestion({ questionId, formId }));
+  const deleteQuestion = (id: string, questionId: string) => {
+    dispatch(formsActions.deleteQuestion({ questionId, id }));
   };
 
-  const onDragEnd = (result: DropResult, formId: string) => {
+  const onDragEnd = (result: DropResult, id: string) => {
     if (!result.destination) {
       return;
     }
 
     dispatch(
       formsActions.reorderQuestions({
-        formId,
+        id,
         startIndex: result.source.index,
         endIndex: result.destination.index,
       })
@@ -138,7 +118,7 @@ function QuestionsUI() {
   return (
     <DragDropContext
       onDragEnd={(result) => {
-        if (formId) onDragEnd(result, formId);
+        if (id) onDragEnd(result, id);
       }}
     >
       <Droppable droppableId="questions-droppable">
@@ -177,7 +157,7 @@ function QuestionsUI() {
                         slotProps={{ transition: { unmountOnExit: true } }}
                         className="md:p-3 p-1"
                         onChange={() => {
-                          if (formId) handleExpand(index, formId);
+                          if (id) handleExpand(index, id);
                         }}
                       >
                         <div
@@ -279,11 +259,11 @@ function QuestionsUI() {
                                         type="text"
                                         value={question.questionText}
                                         onChange={(e) => {
-                                          if (formId) {
+                                          if (id) {
                                             changeQuestion(
                                               e.target.value,
                                               question.id,
-                                              formId
+                                              id
                                             );
                                           }
                                         }}
@@ -293,258 +273,13 @@ function QuestionsUI() {
                                     </div>
                                     <CropOriginalOutlined />
                                   </div>
-                                  <Select
-                                    onChange={(e) => {
-                                      if (formId) {
-                                        handleChange(formId, e, question.id);
-                                      }
-                                    }}
+                                  <QuestionTypeSelect
                                     value={question.questionTypeSelect}
-                                    className="md:text-4xl sm:text-3xl text-2xl place-self-start mb-2"
-                                    variant="outlined"
-                                    sx={{ padding: 0 }}
-                                  >
-                                    <MenuItem
-                                      value={"Multiple Choice"}
-                                      onClick={() => {
-                                        if (formId) {
-                                          addQuestionType(
-                                            formId,
-                                            question.id,
-                                            QuestionType.RADIO
-                                          );
-                                        }
-                                      }}
-                                    >
-                                      <CheckCircle
-                                        sx={{
-                                          marginRight: {
-                                            xs: "4px",
-                                            sm: "6px",
-                                            md: "8px",
-                                          },
-                                          fontSize: {
-                                            xs: "1.125rem",
-                                            sm: "1.25rem",
-                                            md: "1.5rem",
-                                          },
-                                          lineHeight: {
-                                            xs: "1.75rem",
-                                            sm: "1.75rem",
-                                            md: "2rem",
-                                          },
-                                        }}
-                                      />
-                                      Multiple Choice
-                                    </MenuItem>
-
-                                    <MenuItem
-                                      value={"Check Box"}
-                                      onClick={() => {
-                                        if (formId) {
-                                          addQuestionType(
-                                            formId,
-                                            question.id,
-                                            QuestionType.CHECKBOX
-                                          );
-                                        }
-                                      }}
-                                    >
-                                      <CheckBox
-                                        sx={{
-                                          marginRight: {
-                                            xs: "4px",
-                                            sm: "6px",
-                                            md: "8px",
-                                          },
-                                          fontSize: {
-                                            xs: "1.125rem",
-                                            sm: "1.25rem",
-                                            md: "1.5rem",
-                                          },
-                                          lineHeight: {
-                                            xs: "1.75rem",
-                                            sm: "1.75rem",
-                                            md: "2rem",
-                                          },
-                                        }}
-                                      />
-                                      Check Box
-                                    </MenuItem>
-
-                                    <MenuItem
-                                      value={"Short Answer"}
-                                      onClick={() => {
-                                        if (formId) {
-                                          addQuestionType(
-                                            formId,
-                                            question.id,
-                                            QuestionType.SHORT_ANSWER
-                                          );
-                                        } else {
-                                          console.warn(
-                                            "formId is null. Cannot add question type."
-                                          );
-                                        }
-                                      }}
-                                    >
-                                      <ShortText
-                                        sx={{
-                                          marginRight: {
-                                            xs: "4px",
-                                            sm: "6px",
-                                            md: "8px",
-                                          },
-                                          fontSize: {
-                                            xs: "1.125rem",
-                                            sm: "1.25rem",
-                                            md: "1.5rem",
-                                          },
-                                          lineHeight: {
-                                            xs: "1.75rem",
-                                            sm: "1.75rem",
-                                            md: "2rem",
-                                          },
-                                        }}
-                                      />
-                                      Short Answer
-                                    </MenuItem>
-                                    <MenuItem
-                                      value={"Paragraph"}
-                                      onClick={() => {
-                                        if (formId) {
-                                          addQuestionType(
-                                            formId,
-                                            question.id,
-                                            QuestionType.LONG_ANSWER
-                                          );
-                                        }
-                                      }}
-                                    >
-                                      <Subject
-                                        sx={{
-                                          marginRight: {
-                                            xs: "4px",
-                                            sm: "6px",
-                                            md: "8px",
-                                          },
-                                          fontSize: {
-                                            xs: "1.125rem",
-                                            sm: "1.25rem",
-                                            md: "1.5rem",
-                                          },
-                                          lineHeight: {
-                                            xs: "1.75rem",
-                                            sm: "1.75rem",
-                                            md: "2rem",
-                                          },
-                                        }}
-                                      />
-                                      Paragraph
-                                    </MenuItem>
-
-                                    <MenuItem
-                                      value={"File Upload"}
-                                      onClick={() => {
-                                        if (formId) {
-                                          addQuestionType(
-                                            formId,
-                                            question.id,
-                                            QuestionType.FILE_UPLOAD
-                                          );
-                                        }
-                                      }}
-                                    >
-                                      <FileUpload
-                                        sx={{
-                                          marginRight: {
-                                            xs: "4px",
-                                            sm: "6px",
-                                            md: "8px",
-                                          },
-                                          fontSize: {
-                                            xs: "1.125rem",
-                                            sm: "1.25rem",
-                                            md: "1.5rem",
-                                          },
-                                          lineHeight: {
-                                            xs: "1.75rem",
-                                            sm: "1.75rem",
-                                            md: "2rem",
-                                          },
-                                        }}
-                                      />
-                                      File Upload
-                                    </MenuItem>
-
-                                    <MenuItem
-                                      value={"date"}
-                                      onClick={() => {
-                                        if (formId) {
-                                          addQuestionType(
-                                            formId,
-                                            question.id,
-                                            QuestionType.DATE
-                                          );
-                                        }
-                                      }}
-                                    >
-                                      <CalendarMonth
-                                        sx={{
-                                          marginRight: {
-                                            xs: "4px",
-                                            sm: "6px",
-                                            md: "8px",
-                                          },
-                                          fontSize: {
-                                            xs: "1.125rem",
-                                            sm: "1.25rem",
-                                            md: "1.5rem",
-                                          },
-                                          lineHeight: {
-                                            xs: "1.75rem",
-                                            sm: "1.75rem",
-                                            md: "2rem",
-                                          },
-                                        }}
-                                      />
-                                      Date
-                                    </MenuItem>
-
-                                    <MenuItem
-                                      value={"Phone"}
-                                      onClick={() => {
-                                        if (formId) {
-                                          addQuestionType(
-                                            formId,
-                                            question.id,
-                                            QuestionType.PHONE_NUMBER
-                                          );
-                                        }
-                                      }}
-                                    >
-                                      <Phone
-                                        sx={{
-                                          marginRight: {
-                                            xs: "4px",
-                                            sm: "6px",
-                                            md: "8px",
-                                          },
-                                          fontSize: {
-                                            xs: "1.125rem",
-                                            sm: "1.25rem",
-                                            md: "1.5rem",
-                                          },
-                                          lineHeight: {
-                                            xs: "1.75rem",
-                                            sm: "1.75rem",
-                                            md: "2rem",
-                                          },
-                                        }}
-                                      />
-                                      Mobile
-                                    </MenuItem>
-                                  </Select>
+                                    questionId={question.id}
+                                    formId={id}
+                                    onTypeChange={handleChange}
+                                    onQuestionTypeAdd={addQuestionType}
+                                  />
                                 </div>
 
                                 <RenderInputComponents
@@ -554,8 +289,8 @@ function QuestionsUI() {
                                 <div className="addQuestionFooterBottomRight border-t border-solid border-purple h-full pt-1 flex items-center sm:place-self-end place-content-center max-sm:w-full w-max mt-3">
                                   <IconButton
                                     onClick={() => {
-                                      if (formId) {
-                                        copyQuestion(question.id, formId);
+                                      if (id) {
+                                        copyQuestion(question.id, id);
                                       }
                                     }}
                                   >
@@ -582,8 +317,8 @@ function QuestionsUI() {
                                   </IconButton>
                                   <IconButton
                                     onClick={() => {
-                                      if (formId) {
-                                        deleteQuestion(formId, question.id);
+                                      if (id) {
+                                        deleteQuestion(id, question.id);
                                       }
                                     }}
                                   >
@@ -611,8 +346,8 @@ function QuestionsUI() {
                                   <div className="w-[2px] h-full bg-purple mx-2" />
                                   <span
                                     onClick={() => {
-                                      if (formId) {
-                                        requiredQuestion(formId, question.id);
+                                      if (id) {
+                                        requiredQuestion(id, question.id);
                                       }
                                     }}
                                   >
@@ -629,7 +364,7 @@ function QuestionsUI() {
                                 <AddCircleOutline
                                   color="primary"
                                   onClick={() => {
-                                    if (formId) addMoreQuestionField(formId);
+                                    if (id) addMoreQuestionField(id);
                                   }}
                                   className="hover:cursor-pointer hover:scale-110 transition-all ease-linear duration-200"
                                 />

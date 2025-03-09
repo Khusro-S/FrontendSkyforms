@@ -6,6 +6,7 @@ import {
   fetchAllForms,
   fetchFormByIdAPI,
   updateFormLastOpenedAPI,
+  updateFormTitleAPI,
 } from "../api/api";
 
 interface FormsState {
@@ -45,11 +46,11 @@ export const fetchFormById = createAsyncThunk(
 
 export const updateLastOpenedThunk = createAsyncThunk(
   "forms/updateLastOpened",
-  async ({ formId, lastOpened }: { formId: string; lastOpened: Date }) => {
+  async ({ id, lastOpened }: { id: string; lastOpened: Date }) => {
     // console.log(lastOpened);
     const lastOpenedString = lastOpened.toISOString();
-    await updateFormLastOpenedAPI(formId, lastOpenedString);
-    return { formId, lastOpened: lastOpenedString };
+    await updateFormLastOpenedAPI(id, lastOpenedString);
+    return { id, lastOpened: lastOpenedString };
   }
 );
 
@@ -58,6 +59,14 @@ export const deleteFormThunk = createAsyncThunk(
   async (formId: string) => {
     await deleteFormAPI(formId);
     return formId;
+  }
+);
+
+export const updateFormTitleThunk = createAsyncThunk(
+  "forms/updateFormTitle",
+  async ({ formId, formTitle }: { formId: string; formTitle: string }) => {
+    await updateFormTitleAPI(formId, formTitle);
+    return { formId, formTitle };
   }
 );
 
@@ -74,32 +83,28 @@ const formsSlice = createSlice({
     },
 
     removeForm(state, action: PayloadAction<string>) {
-      state.forms = state.forms.filter(
-        (form) => form.formId !== action.payload
-      );
+      state.forms = state.forms.filter((form) => form.id !== action.payload);
     },
 
     updateForm(state, action: PayloadAction<Form>) {
-      const index = state.forms.findIndex(
-        (f) => f.formId === action.payload.formId
-      );
+      const index = state.forms.findIndex((f) => f.id === action.payload.id);
       if (index !== -1) {
         state.forms[index] = action.payload;
       }
     },
     setLastOpened(
       state,
-      action: PayloadAction<{ formId: string; lastOpened: string }>
+      action: PayloadAction<{ id: string; lastOpened: string }>
     ) {
-      const { formId, lastOpened } = action.payload;
-      const form = state.forms.find((f) => f.formId === formId);
+      const { id, lastOpened } = action.payload;
+      const form = state.forms.find((f) => f.id === id);
       if (form) {
         form.lastOpened = lastOpened;
       }
     },
 
-    addMoreQuestionField(state, action: PayloadAction<{ formId: string }>) {
-      const form = state.forms.find((f) => f.formId === action.payload.formId);
+    addMoreQuestionField(state, action: PayloadAction<{ id: string }>) {
+      const form = state.forms.find((f) => f.id === action.payload.id);
       if (form) {
         form.questions.forEach((question) => (question.open = false));
         form.questions.push({
@@ -117,13 +122,13 @@ const formsSlice = createSlice({
     updateQuestionTypeSelect: (
       state,
       action: PayloadAction<{
-        formId: string;
+        id: string;
         questionId: string;
         questionTypeSelect: string;
       }>
     ) => {
-      const { formId, questionId, questionTypeSelect } = action.payload;
-      const form = state.forms.find((f) => f.formId === formId);
+      const { id, questionId, questionTypeSelect } = action.payload;
+      const form = state.forms.find((f) => f.id === id);
 
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
@@ -135,9 +140,9 @@ const formsSlice = createSlice({
 
     copyQuestion(
       state,
-      action: PayloadAction<{ formId: string; questionId: string }>
+      action: PayloadAction<{ id: string; questionId: string }>
     ) {
-      const form = state.forms.find((f) => f.formId === action.payload.formId);
+      const form = state.forms.find((f) => f.id === action.payload.id);
       if (form) {
         const questionToCopy = form.questions.find(
           (question) => question.id === action.payload.questionId
@@ -155,10 +160,10 @@ const formsSlice = createSlice({
 
     addOption(
       state,
-      action: PayloadAction<{ formId: string; questionId: string }>
+      action: PayloadAction<{ id: string; questionId: string }>
     ) {
-      const { formId, questionId } = action.payload;
-      const form = state.forms.find((f) => f.formId === formId); // Find the form by formId
+      const { id, questionId } = action.payload;
+      const form = state.forms.find((f) => f.id === id); // Find the form by id
 
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
@@ -176,13 +181,13 @@ const formsSlice = createSlice({
     removeOption: (
       state,
       action: PayloadAction<{
-        formId: string;
+        id: string;
         questionId: string;
         optionIndex: number;
       }>
     ) => {
-      const { formId, questionId, optionIndex } = action.payload;
-      const form = state.forms.find((f) => f.formId === formId);
+      const { id, questionId, optionIndex } = action.payload;
+      const form = state.forms.find((f) => f.id === id);
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
         if (
@@ -199,13 +204,13 @@ const formsSlice = createSlice({
     changeQuestion: (
       state,
       action: PayloadAction<{
-        formId: string;
+        id: string;
         text: string;
         questionId: string;
       }>
     ) => {
       const { text, questionId } = action.payload;
-      const form = state.forms.find((f) => f.formId === action.payload.formId);
+      const form = state.forms.find((f) => f.id === action.payload.id);
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
         if (question) {
@@ -216,10 +221,10 @@ const formsSlice = createSlice({
 
     requiredQuestion: (
       state,
-      action: PayloadAction<{ formId: string; questionId: string }>
+      action: PayloadAction<{ id: string; questionId: string }>
     ) => {
       const { questionId } = action.payload;
-      const form = state.forms.find((f) => f.formId === action.payload.formId);
+      const form = state.forms.find((f) => f.id === action.payload.id);
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
         if (question) {
@@ -230,9 +235,9 @@ const formsSlice = createSlice({
 
     deleteQuestion(
       state,
-      action: PayloadAction<{ formId: string; questionId: string }>
+      action: PayloadAction<{ id: string; questionId: string }>
     ) {
-      const form = state.forms.find((f) => f.formId === action.payload.formId);
+      const form = state.forms.find((f) => f.id === action.payload.id);
       if (form) {
         if (form.questions.length > 1) {
           // Only proceed if there’s more than one question
@@ -249,13 +254,13 @@ const formsSlice = createSlice({
     addQuestionType: (
       state,
       action: PayloadAction<{
-        formId: string;
+        id: string;
         questionId: string;
         type: QuestionType;
       }>
     ) => {
-      const { formId, questionId, type } = action.payload;
-      const form = state.forms.find((f) => f.formId === formId);
+      const { id, questionId, type } = action.payload;
+      const form = state.forms.find((f) => f.id === id);
 
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
@@ -279,19 +284,19 @@ const formsSlice = createSlice({
     changeOptionValues: (
       state,
       action: PayloadAction<{
-        formId: string;
+        id: string;
         text: string;
         questionId: string;
         optionIndex: number;
       }>
     ) => {
-      const { formId, text, questionId, optionIndex } = action.payload;
+      const { id, text, questionId, optionIndex } = action.payload;
 
-      if (!formId) {
-        console.warn("formId is null. Cannot change option value.");
+      if (!id) {
+        console.warn("id is null. Cannot change option value.");
         return state;
       }
-      const form = state.forms.find((f) => f.formId === formId);
+      const form = state.forms.find((f) => f.id === id);
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
 
@@ -310,13 +315,13 @@ const formsSlice = createSlice({
     reorderQuestions(
       state,
       action: PayloadAction<{
-        formId: string;
+        id: string;
         startIndex: number;
         endIndex: number;
       }>
     ) {
-      const { formId, startIndex, endIndex } = action.payload;
-      const form = state.forms.find((f) => f.formId === formId);
+      const { id, startIndex, endIndex } = action.payload;
+      const form = state.forms.find((f) => f.id === id);
       if (form) {
         const [removed] = form.questions.splice(startIndex, 1);
         form.questions.splice(endIndex, 0, removed);
@@ -325,10 +330,10 @@ const formsSlice = createSlice({
 
     handleExpand: (
       state: FormsState,
-      action: PayloadAction<{ formId: string; Index: number }>
+      action: PayloadAction<{ id: string; Index: number }>
     ): FormsState => {
-      const { formId, Index } = action.payload;
-      const form = state.forms.find((f) => f.formId === formId);
+      const { id, Index } = action.payload;
+      const form = state.forms.find((f) => f.id === id);
       if (form) {
         form.questions = form.questions.map((question, index) => ({
           ...question,
@@ -341,7 +346,7 @@ const formsSlice = createSlice({
 
     createNewForm: (state, action: PayloadAction<string>) => {
       const newForm: Form = {
-        formId: action.payload,
+        id: action.payload,
         formTitle: "Untitled Form",
         formDescription: "Untitled Description",
         questions: [
@@ -359,15 +364,15 @@ const formsSlice = createSlice({
       };
 
       state.forms.push(newForm);
-      state.currentFormId = newForm.formId;
+      state.currentFormId = newForm.id;
     },
 
     setFormTitle: (
       state,
-      action: PayloadAction<{ formId: string; formTitle: string }>
+      action: PayloadAction<{ id: string; formTitle: string }>
     ) => {
-      const { formId, formTitle } = action.payload;
-      const form = state.forms.find((f) => f.formId === formId);
+      const { id, formTitle } = action.payload;
+      const form = state.forms.find((f) => f.id === id);
       if (form) {
         form.formTitle = formTitle;
       }
@@ -375,10 +380,10 @@ const formsSlice = createSlice({
 
     setFormDescription: (
       state,
-      action: PayloadAction<{ formId: string; formDescription: string }>
+      action: PayloadAction<{ id: string; formDescription: string }>
     ) => {
-      const { formId, formDescription } = action.payload;
-      const form = state.forms.find((f) => f.formId === formId);
+      const { id, formDescription } = action.payload;
+      const form = state.forms.find((f) => f.id === id);
       if (form) {
         form.formDescription = formDescription;
       }
@@ -386,10 +391,10 @@ const formsSlice = createSlice({
 
     setQuestions: (
       state,
-      action: PayloadAction<{ formId: string; questions: Question[] }>
+      action: PayloadAction<{ id: string; questions: Question[] }>
     ) => {
-      const { formId, questions } = action.payload;
-      const form = state.forms.find((f) => f.formId === formId);
+      const { id, questions } = action.payload;
+      const form = state.forms.find((f) => f.id === id);
       if (form) {
         form.questions = questions;
       }
@@ -398,13 +403,13 @@ const formsSlice = createSlice({
     setFile(
       state,
       action: PayloadAction<{
-        formId: string;
+        id: string;
         questionId: string;
         file: FileData;
       }>
     ) {
-      const { formId, questionId, file } = action.payload;
-      const form = state.forms.find((f) => f.formId === formId);
+      const { id, questionId, file } = action.payload;
+      const form = state.forms.find((f) => f.id === id);
 
       if (form) {
         form.questions = form.questions.map((question) =>
@@ -418,10 +423,10 @@ const formsSlice = createSlice({
 
     removeFile(
       state,
-      action: PayloadAction<{ formId: string; questionId: string }>
+      action: PayloadAction<{ id: string; questionId: string }>
     ) {
-      const { formId, questionId } = action.payload;
-      const form = state.forms.find((f) => f.formId === formId);
+      const { id, questionId } = action.payload;
+      const form = state.forms.find((f) => f.id === id);
       if (form) {
         form.questions = form.questions.map((question) =>
           question.id === questionId &&
@@ -435,17 +440,17 @@ const formsSlice = createSlice({
     changeShortAnswer: (
       state,
       action: PayloadAction<{
-        formId: string | null;
+        id: string | null;
         answer: string;
         questionId: string;
       }>
     ) => {
-      const { formId, answer, questionId } = action.payload;
-      if (!formId) {
-        console.warn("formId is null. Cannot update short answer.");
+      const { id, answer, questionId } = action.payload;
+      if (!id) {
+        console.warn("id is null. Cannot update short answer.");
         return state;
       }
-      const form = state.forms.find((f) => f.formId === formId);
+      const form = state.forms.find((f) => f.id === id);
 
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
@@ -457,18 +462,18 @@ const formsSlice = createSlice({
     changeLongAnswer: (
       state,
       action: PayloadAction<{
-        formId: string | null;
+        id: string | null;
         answer: string;
         questionId: string;
       }>
     ) => {
-      const { formId, answer, questionId } = action.payload;
-      if (!formId) {
-        console.warn("formId is null. Cannot update short answer.");
+      const { id, answer, questionId } = action.payload;
+      if (!id) {
+        console.warn("id is null. Cannot update short answer.");
         return state;
       }
 
-      const form = state.forms.find((f) => f.formId === formId);
+      const form = state.forms.find((f) => f.id === id);
 
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
@@ -481,18 +486,18 @@ const formsSlice = createSlice({
     changeDate: (
       state,
       action: PayloadAction<{
-        formId: string | null;
+        id: string | null;
         date: string;
         questionId: string;
       }>
     ) => {
-      const { formId, date, questionId } = action.payload;
-      if (!formId) {
-        console.warn("formId is null. Cannot update short answer.");
+      const { id, date, questionId } = action.payload;
+      if (!id) {
+        console.warn("id is null. Cannot update short answer.");
         return state;
       }
 
-      const form = state.forms.find((f) => f.formId === formId);
+      const form = state.forms.find((f) => f.id === id);
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
         if (question && question.questionType === QuestionType.DATE) {
@@ -504,17 +509,17 @@ const formsSlice = createSlice({
     changePhoneNumber: (
       state,
       action: PayloadAction<{
-        formId: string | null;
+        id: string | null;
         number: number;
         questionId: string;
       }>
     ) => {
-      const { formId, number, questionId } = action.payload;
-      if (!formId) {
-        console.warn("formId is null. Cannot update short answer.");
+      const { id, number, questionId } = action.payload;
+      if (!id) {
+        console.warn("id is null. Cannot update short answer.");
         return state;
       }
-      const form = state.forms.find((f) => f.formId === formId);
+      const form = state.forms.find((f) => f.id === id);
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
         if (question && question.questionType === QuestionType.PHONE_NUMBER) {
@@ -525,9 +530,9 @@ const formsSlice = createSlice({
 
     toggleOpenAllQuestions(
       state,
-      action: PayloadAction<{ formId: string; open: boolean }>
+      action: PayloadAction<{ id: string; open: boolean }>
     ) {
-      const form = state.forms.find((f) => f.formId === action.payload.formId);
+      const form = state.forms.find((f) => f.id === action.payload.id);
       if (form) {
         form.questions.forEach(
           (question) => (question.open = action.payload.open)
@@ -538,17 +543,17 @@ const formsSlice = createSlice({
     toggleCheckbox: (
       state,
       action: PayloadAction<{
-        formId: string;
+        id: string;
         questionId: string;
         optionIndex: number;
       }>
     ) => {
-      const { formId, questionId, optionIndex } = action.payload;
-      if (!formId) {
-        console.warn("formId is null. Cannot toggle checkbox option.");
+      const { id, questionId, optionIndex } = action.payload;
+      if (!id) {
+        console.warn("id is null. Cannot toggle checkbox option.");
         return state;
       }
-      const form = state.forms.find((f) => f.formId === formId);
+      const form = state.forms.find((f) => f.id === id);
       if (form) {
         const question = form.questions.find((q) => q.id === questionId);
 
@@ -580,15 +585,15 @@ const formsSlice = createSlice({
     setRadioOption: (
       state,
       action: PayloadAction<{
-        formId: string;
+        id: string;
         questionId: string;
         optionIndex: number;
       }>
     ) => {
-      const { formId, questionId, optionIndex } = action.payload;
-      const form = state.forms.find((f) => f.formId === formId);
-      if (!formId) {
-        console.warn("formId is null. Cannot set radio option.");
+      const { id, questionId, optionIndex } = action.payload;
+      const form = state.forms.find((f) => f.id === id);
+      if (!id) {
+        console.warn("id is null. Cannot set radio option.");
         return state;
       }
       if (form) {
@@ -649,7 +654,7 @@ const formsSlice = createSlice({
         state.loading = false;
         const fetchedForm = action.payload;
         state.forms = state.forms.map((form) =>
-          form.formId === fetchedForm.formId ? fetchedForm : form
+          form.id === fetchedForm.id ? fetchedForm : form
         );
       })
       .addCase(fetchFormById.rejected, (state, action) => {
@@ -662,8 +667,8 @@ const formsSlice = createSlice({
       })
       .addCase(updateLastOpenedThunk.fulfilled, (state, action) => {
         state.loading = false;
-        const { formId, lastOpened } = action.payload;
-        const form = state.forms.find((f) => f.formId === formId);
+        const { id, lastOpened } = action.payload;
+        const form = state.forms.find((f) => f.id === id);
         if (form) {
           form.lastOpened = new Date(lastOpened).toISOString();
         }
@@ -678,14 +683,19 @@ const formsSlice = createSlice({
       })
       .addCase(deleteFormThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.forms = state.forms.filter(
-          (form) => form.formId !== action.payload
-        );
+        state.forms = state.forms.filter((form) => form.id !== action.payload);
       })
       .addCase(deleteFormThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to delete form";
         console.log("Error: ", action.error);
+      })
+      .addCase(updateFormTitleThunk.fulfilled, (state, action) => {
+        const { formId, formTitle } = action.payload;
+        const formIndex = state.forms.findIndex((form) => form.id === formId);
+        if (formIndex !== -1) {
+          state.forms[formIndex].formTitle = formTitle;
+        }
       });
   },
 });

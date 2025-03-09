@@ -23,7 +23,7 @@ export default function QuestionsForm() {
     (state: RootState) => state.forms.currentFormId
   );
   const currentForm = useSelector((state: RootState) =>
-    state.forms.forms.find((form) => form.formId === currentFormId)
+    state.forms.forms.find((form) => form.id === currentFormId)
   );
   // const { forms, error, loading } = useSelector(
   //   (state: RootState) => state.forms
@@ -34,7 +34,7 @@ export default function QuestionsForm() {
       alert("No form data found to create.");
       return;
     }
-    const { formId, formTitle, formDescription, questions } = currentForm;
+    const { id, formTitle, formDescription, questions } = currentForm;
 
     if (!formTitle || !formDescription || questions.length === 0) {
       alert(
@@ -44,7 +44,7 @@ export default function QuestionsForm() {
     }
 
     const formData = {
-      formId,
+      id,
       formTitle,
       formDescription,
       questions,
@@ -65,13 +65,12 @@ export default function QuestionsForm() {
   // const questions = useSelector((state: RootState) => state.questions.questions);
   const formTitle = useSelector((state: RootState) =>
     currentFormId
-      ? state.forms.forms.find((form) => form.formId === currentFormId)
-          ?.formTitle
+      ? state.forms.forms.find((form) => form.id === currentFormId)?.formTitle
       : ""
   );
   const formDescription = useSelector((state: RootState) =>
     currentFormId
-      ? state.forms.forms.find((form) => form.formId === currentFormId)
+      ? state.forms.forms.find((form) => form.id === currentFormId)
           ?.formDescription
       : ""
   );
@@ -80,7 +79,7 @@ export default function QuestionsForm() {
     if (currentFormId) {
       dispatch(
         formsActions.setFormTitle({
-          formId: currentFormId,
+          id: currentFormId,
           formTitle: e.target.value,
         })
       );
@@ -91,7 +90,7 @@ export default function QuestionsForm() {
     if (currentFormId) {
       dispatch(
         formsActions.setFormDescription({
-          formId: currentFormId,
+          id: currentFormId,
           formDescription: e.target.value,
         })
       );

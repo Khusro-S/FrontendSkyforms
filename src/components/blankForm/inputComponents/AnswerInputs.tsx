@@ -26,7 +26,7 @@ export default function AnswerInputs({ questionId }: { questionId: string }) {
       case "shortAnswer":
         dispatch(
           formsActions.changeShortAnswer({
-            formId: currentFormId,
+            id: currentFormId,
             answer: String(value),
             questionId: question.id,
           })
@@ -35,7 +35,7 @@ export default function AnswerInputs({ questionId }: { questionId: string }) {
       case "longAnswer":
         dispatch(
           formsActions.changeLongAnswer({
-            formId: currentFormId,
+            id: currentFormId,
             answer: String(value),
             questionId: question.id,
           })
@@ -44,7 +44,7 @@ export default function AnswerInputs({ questionId }: { questionId: string }) {
       case "date":
         dispatch(
           formsActions.changeDate({
-            formId: currentFormId,
+            id: currentFormId,
             date: String(value),
             questionId: question.id,
           })
@@ -55,7 +55,7 @@ export default function AnswerInputs({ questionId }: { questionId: string }) {
         // dispatch(questionsActions.changePhoneNumber({ number: isNaN(phoneNumber) ? null : phoneNumber, index }));
         dispatch(
           formsActions.changePhoneNumber({
-            formId: currentFormId,
+            id: currentFormId,
             number: Number(value),
             questionId: question.id,
           })

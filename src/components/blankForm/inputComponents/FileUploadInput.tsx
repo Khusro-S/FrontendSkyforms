@@ -54,7 +54,7 @@ export default function FileUploadInput({
     if (currentFormId)
       dispatch(
         formsActions.setFile({
-          formId: currentFormId,
+          id: currentFormId,
           questionId,
           file: fileData,
         })
@@ -62,7 +62,7 @@ export default function FileUploadInput({
   };
   const handleRemoveFile = () => {
     if (currentFormId)
-      dispatch(formsActions.removeFile({ formId: currentFormId, questionId }));
+      dispatch(formsActions.removeFile({ id: currentFormId, questionId }));
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";

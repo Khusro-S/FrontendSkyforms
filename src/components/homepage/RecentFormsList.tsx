@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import RecentForm from "./RecentForm";
 import { Link } from "react-router-dom";
 import {
+  deleteFormThunk,
   formsActions,
   getForms,
+  updateFormTitleThunk,
   updateLastOpenedThunk,
 } from "../../store/formsSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -25,6 +27,8 @@ import {
   DialogTitle,
   // TextField,
   Input,
+  Select,
+  SelectChangeEvent,
 } from "@mui/material";
 
 export default function RecentFormsList() {
@@ -32,6 +36,10 @@ export default function RecentFormsList() {
   const { forms, error, loading } = useSelector(
     (state: RootState) => state.forms
   );
+
+  // Pagination state
+  const [page, setPage] = useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(8); // 2x4 grid
 
   // Single active menu state instead of an object of states
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -46,17 +54,44 @@ export default function RecentFormsList() {
     dispatch(getForms());
   }, [dispatch]);
 
-  const handleFormClick = (formId: string) => {
-    dispatch(formsActions.setCurrentFormId(formId));
+  // Get paginated forms
+  const paginatedForms = forms.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
+  // Calculate total pages
+  const totalPages = Math.ceil(forms.length / rowsPerPage);
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  // Handle rows per page change
+  // const handleRowsPerPageChange = (
+  //   event: React.ChangeEvent<HTMLSelectElement>
+  // ) => {
+  //   setRowsPerPage(parseInt(event.target.value, 10));
+  //   setPage(0); // Reset to first page when changing rows per page
+  // };
+  const handleRowsPerPageChange = (event: SelectChangeEvent<number>) => {
+    setRowsPerPage(parseInt(event.target.value as string, 10));
+    setPage(0); // Reset to first page when changing rows per page
+  };
+
+  const handleFormClick = (id: string) => {
+    dispatch(formsActions.setCurrentFormId(id));
     const currentDate = new Date();
-    dispatch(updateLastOpenedThunk({ formId, lastOpened: currentDate }));
+    dispatch(updateLastOpenedThunk({ id, lastOpened: currentDate }));
     dispatch(
       formsActions.setLastOpened({
-        formId,
+        id,
         lastOpened: currentDate.toISOString(),
       })
     ); // navigate(`/blank-form/${formId}`);
   };
+
   // Toggle menu open/close with stopPropagation
   const handleToggle = (formId: string, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -84,7 +119,7 @@ export default function RecentFormsList() {
 
   // Open rename modal
   const handleRenameRequest = (formId: string) => {
-    const form = forms.find((f) => f.formId === formId);
+    const form = forms.find((f) => f.id === formId);
     setRenameInput(form?.formTitle || "");
     setRenameFormId(formId);
     setActiveMenu(null);
@@ -94,8 +129,14 @@ export default function RecentFormsList() {
   const handleRenameConfirm = () => {
     if (renameFormId && renameInput.trim()) {
       dispatch(
-        formsActions.setFormTitle({
+        updateFormTitleThunk({
           formId: renameFormId,
+          formTitle: renameInput.trim(),
+        })
+      );
+      dispatch(
+        formsActions.setFormTitle({
+          id: renameFormId,
           formTitle: renameInput.trim(),
         })
       );
@@ -112,23 +153,143 @@ export default function RecentFormsList() {
   const handleDeleteConfirm = () => {
     if (confirmDelete) {
       dispatch(formsActions.removeForm(confirmDelete));
+      dispatch(deleteFormThunk(confirmDelete));
       setConfirmDelete(null);
     }
   };
 
+  // Generate pagination buttons
+  const renderPaginationButtons = () => {
+    const buttons = [];
+    const maxVisiblePages = 5; // Show at most 5 page buttons
+
+    // Always show first page
+    buttons.push(
+      <button
+        key="first"
+        onClick={() => handlePageChange(0)}
+        className={`px-3 py-1 mx-1 rounded text-black ${
+          page === 0
+            ? "bg-purple"
+            : "bg-black text-purple hover:bg-purple hover:text-black"
+        }`}
+        disabled={page === 0}
+      >
+        1
+      </button>
+    );
+
+    // Calculate range of visible page buttons
+    let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
+    const endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 2);
+
+    // Adjust start if we're near the end
+    if (endPage - startPage < maxVisiblePages - 2) {
+      startPage = Math.max(1, endPage - (maxVisiblePages - 2));
+    }
+
+    // Add ellipsis after first page if needed
+    if (startPage > 1) {
+      buttons.push(
+        <span key="ellipsis-start" className="px-3 py-1">
+          ...
+        </span>
+      );
+    }
+
+    // Add middle page buttons
+    for (let i = startPage; i <= endPage; i++) {
+      buttons.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`px-3 py-1 mx-1 rounded text-black ${
+            page === i
+              ? "bg-purple "
+              : "bg-black text-purple hover:bg-purple hover:text-black"
+          }`}
+        >
+          {i + 1}
+        </button>
+      );
+    }
+
+    // Add ellipsis before last page if needed
+    if (endPage < totalPages - 1) {
+      buttons.push(
+        <span key="ellipsis-end" className="px-3 py-1">
+          ...
+        </span>
+      );
+    }
+
+    // Always show last page if there's more than one page
+    if (totalPages > 5 && page != totalPages - 1) {
+      buttons.push(
+        <button
+          key="last"
+          onClick={() => handlePageChange(totalPages - 1)}
+          className={`px-3 py-1 mx-1 rounded ${
+            page === totalPages - 1
+              ? "bg-purple"
+              : "bg-black text-purple hover:bg-purple hover:text-black"
+          }`}
+          disabled={page === totalPages - 1}
+        >
+          {totalPages}
+        </button>
+      );
+    }
+
+    return buttons;
+  };
+
   return (
     <div className="px-[5.5rem] py-5">
-      <h2 className="md:text-xl text-lg mb-5">Recent forms</h2>
+      <div className="flex justify-between items-center mb-5">
+        <h2 className="md:text-xl text-lg">Recent forms</h2>
+        <div className="flex items-center space-x-2">
+          <label htmlFor="rows-per-page" className="text-purple">
+            Forms per page:
+          </label>
+          <Select
+            id="rows-per-page"
+            variant="outlined"
+            sx={{ padding: 0, margin: 0 }}
+            onChange={handleRowsPerPageChange}
+            value={rowsPerPage}
+            size="small"
+            className="bg-black text-purple"
+          >
+            <MenuItem value={4}>4</MenuItem>
+            <MenuItem value={8}>8</MenuItem>
+            <MenuItem value={12}>12</MenuItem>
+            <MenuItem value={16}>16</MenuItem>
+          </Select>
+          {/* <select
+            id="rows-per-page"
+            value={rowsPerPage}
+            onChange={handleRowsPerPageChange}
+            className="p-1 border rounded text-sm bg-black text-purple"
+          >
+            <option value={4}>4</option>
+            <option value={8}>8</option>
+            <option value={12}>12</option>
+            <option value={16}>16</option>
+          </select> */}
+        </div>
+      </div>
+
       {loading && <p>Loading forms...</p>}
       {!loading && error && <p>Error: {error}</p>}
 
       <div className="recentforms w-full grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-5">
-        {forms && forms.length > 0
-          ? forms.map((form) => (
-              <div key={form.formId} className="relative">
+        {paginatedForms && paginatedForms.length > 0
+          ? paginatedForms.map((form) => (
+              <div key={form.id} className="relative">
                 <Link
-                  to={`/blank-form/${form.formId}`}
-                  onClick={() => handleFormClick(form.formId)}
+                  to={`/blank-form/${form.id}`}
+                  onClick={() => handleFormClick(form.id)}
                 >
                   <RecentForm
                     title={form.formTitle}
@@ -137,17 +298,15 @@ export default function RecentFormsList() {
                     }
                   />
                 </Link>
-                <div className="absolute bottom-5  right-2 z-10">
+                <div className="absolute bottom-5 right-2 z-10">
                   <Button
-                    id={`menu-button-${form.formId}`}
+                    id={`menu-button-${form.id}`}
                     aria-controls={
-                      activeMenu === form.formId ? "form-menu" : undefined
+                      activeMenu === form.id ? "form-menu" : undefined
                     }
-                    aria-expanded={
-                      activeMenu === form.formId ? "true" : undefined
-                    }
+                    aria-expanded={activeMenu === form.id ? "true" : undefined}
                     aria-haspopup="true"
-                    onClick={(e) => handleToggle(form.formId, e)}
+                    onClick={(e) => handleToggle(form.id, e)}
                     className="min-w-0 p-1"
                   >
                     <MoreVert className="text-black hover:scale-105 active:scale-100 transition-transform ease-in-out duration-300" />
@@ -157,6 +316,28 @@ export default function RecentFormsList() {
             ))
           : !error && <p>No recent forms</p>}
       </div>
+
+      {/* Pagination controls */}
+      {/* {!loading && !error && forms.length > 0 && ( */}
+      {!loading && forms.length > 0 && (
+        <div className="mt-6 flex justify-center items-center">
+          <button
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page === 0}
+            className="px-3 py-1 rounded bg-purple text-black hover:text-purple hover:bg-black disabled:opacity-50 mr-2 disabled:hover:none"
+          >
+            &lt; Prev
+          </button>
+          <div className="flex mx-2">{renderPaginationButtons()}</div>
+          <button
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page >= totalPages - 1}
+            className="px-3 py-1 rounded bg-purple text-black hover:text-purple hover:bg-black disabled:opacity-50 ml-2"
+          >
+            Next &gt;
+          </button>
+        </div>
+      )}
 
       {/* Single Popper for active menu */}
       {activeMenu && (
@@ -211,7 +392,6 @@ export default function RecentFormsList() {
           <Input
             autoFocus
             margin="dense"
-            // label="Form Title"
             type="text"
             fullWidth
             value={renameInput}

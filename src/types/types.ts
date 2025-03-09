@@ -34,7 +34,8 @@ export interface Question {
 }
 
 export interface Form {
-  formId: string;
+  // formId: string;
+  id: string;
   formTitle: string;
   formDescription: string;
   questions: Question[];
