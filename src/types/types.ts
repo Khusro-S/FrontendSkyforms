@@ -40,4 +40,5 @@ export interface Form {
   formDescription: string;
   questions: Question[];
   lastOpened: string | null;
+  newForm: boolean;
 }

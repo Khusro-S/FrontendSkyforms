@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import RecentForm from "./RecentForm";
 import { Link } from "react-router-dom";
 import {
@@ -33,7 +33,7 @@ import {
 
 export default function RecentFormsList() {
   const dispatch = useDispatch<AppDispatch>();
-  const { forms, error, loading } = useSelector(
+  const { forms, error, loading, searchQuery } = useSelector(
     (state: RootState) => state.forms
   );
 
@@ -46,7 +46,6 @@ export default function RecentFormsList() {
   const anchorRef = useRef<HTMLButtonElement | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-  // State for rename modal
   const [renameFormId, setRenameFormId] = useState<string | null>(null);
   const [renameInput, setRenameInput] = useState<string>("");
 
@@ -54,19 +53,53 @@ export default function RecentFormsList() {
     dispatch(getForms());
   }, [dispatch]);
 
-  // Get paginated forms
-  const paginatedForms = forms.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+  // Filter forms based on search query
+  const filteredForms = useMemo(() => {
+    if (!searchQuery.trim()) return forms;
 
-  // Calculate total pages
-  const totalPages = Math.ceil(forms.length / rowsPerPage);
+    return forms.filter((form) =>
+      form.formTitle.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [forms, searchQuery]);
+
+  // Reset to first page when search query changes
+  useEffect(() => {
+    setPage(0);
+  }, [searchQuery]);
+
+  // Get paginated forms
+  // Get paginated forms from filtered forms
+  const paginatedForms = useMemo(() => {
+    return filteredForms.slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
+  }, [filteredForms, page, rowsPerPage]);
+
+  // Calculate total pages based on filteredForms
+  const totalPages = Math.ceil(filteredForms.length / rowsPerPage);
+
+  // Ensure page is valid when filteredForms length changes
+  useEffect(() => {
+    if (page >= totalPages && totalPages > 0) {
+      setPage(totalPages - 1);
+    }
+  }, [filteredForms.length, page, totalPages]);
+
+  // // Calculate total pages
+  // const totalPages = Math.ceil(forms.length / rowsPerPage);
+
+  // // Ensure page is valid when filteredForms length changes
+  // useEffect(() => {
+  //   if (page >= totalPages && totalPages > 0) {
+  //     setPage(totalPages - 1);
+  //   }
+  // }, [filteredForms.length, page, totalPages]);
 
   // Handle page change
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
-  };
+  }, []);
 
   // Handle rows per page change
   // const handleRowsPerPageChange = (
@@ -77,22 +110,21 @@ export default function RecentFormsList() {
   // };
   const handleRowsPerPageChange = (event: SelectChangeEvent<number>) => {
     setRowsPerPage(parseInt(event.target.value as string, 10));
-    setPage(0); // Reset to first page when changing rows per page
+    // setPage(0); // Reset to first page when changing rows per page (handled by useEffect)
   };
 
   const handleFormClick = (id: string) => {
-    dispatch(formsActions.setCurrentFormId(id));
     const currentDate = new Date();
+    dispatch(formsActions.setCurrentFormId(id));
     dispatch(updateLastOpenedThunk({ id, lastOpened: currentDate }));
-    dispatch(
-      formsActions.setLastOpened({
-        id,
-        lastOpened: currentDate.toISOString(),
-      })
-    ); // navigate(`/blank-form/${formId}`);
+    // dispatch(
+    //   formsActions.setLastOpened({
+    //     id,
+    //     lastOpened: currentDate.toISOString(),
+    //   })
+    // ); // navigate(`/blank-form/${formId}`);
   };
 
-  // Toggle menu open/close with stopPropagation
   const handleToggle = (formId: string, event: React.MouseEvent) => {
     event.stopPropagation();
     event.preventDefault();
@@ -117,7 +149,6 @@ export default function RecentFormsList() {
     }
   }
 
-  // Open rename modal
   const handleRenameRequest = (formId: string) => {
     const form = forms.find((f) => f.id === formId);
     setRenameInput(form?.formTitle || "");
@@ -125,7 +156,6 @@ export default function RecentFormsList() {
     setActiveMenu(null);
   };
 
-  // Handle rename with validation
   const handleRenameConfirm = () => {
     if (renameFormId && renameInput.trim()) {
       dispatch(
@@ -144,7 +174,6 @@ export default function RecentFormsList() {
     }
   };
 
-  // Show confirmation before deleting
   const handleDeleteRequest = (formId: string) => {
     setConfirmDelete(formId);
     setActiveMenu(null);
@@ -158,10 +187,12 @@ export default function RecentFormsList() {
     }
   };
 
-  // Generate pagination buttons
   const renderPaginationButtons = () => {
     const buttons = [];
     const maxVisiblePages = 5; // Show at most 5 page buttons
+
+    if (filteredForms.length <= rowsPerPage) return [];
+    if (totalPages <= 0) return [];
 
     // Always show first page
     buttons.push(
@@ -179,66 +210,86 @@ export default function RecentFormsList() {
       </button>
     );
 
-    // Calculate range of visible page buttons
-    let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
-    const endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 2);
+    // Only continue if we have more than 1 page
+    if (totalPages > 1) {
+      // Calculate range of visible page buttons
+      let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
+      const endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 2);
 
-    // Adjust start if we're near the end
-    if (endPage - startPage < maxVisiblePages - 2) {
-      startPage = Math.max(1, endPage - (maxVisiblePages - 2));
-    }
+      // Adjust start if we're near the end
+      if (endPage - startPage < maxVisiblePages - 2) {
+        startPage = Math.max(1, endPage - (maxVisiblePages - 2));
+      }
 
-    // Add ellipsis after first page if needed
-    if (startPage > 1) {
-      buttons.push(
-        <span key="ellipsis-start" className="px-3 py-1">
-          ...
-        </span>
-      );
-    }
+      // // Calculate range of visible page buttons
+      // let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
+      // const endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 2);
 
-    // Add middle page buttons
-    for (let i = startPage; i <= endPage; i++) {
-      buttons.push(
-        <button
-          key={i}
-          onClick={() => handlePageChange(i)}
-          className={`px-3 py-1 mx-1 rounded text-black ${
-            page === i
-              ? "bg-purple "
-              : "bg-black text-purple hover:bg-purple hover:text-black"
-          }`}
-        >
-          {i + 1}
-        </button>
-      );
-    }
+      // // Adjust start if we're near the end
+      // if (endPage - startPage < maxVisiblePages - 2) {
+      //   startPage = Math.max(1, endPage - (maxVisiblePages - 2));
+      // }
 
-    // Add ellipsis before last page if needed
-    if (endPage < totalPages - 1) {
-      buttons.push(
-        <span key="ellipsis-end" className="px-3 py-1">
-          ...
-        </span>
-      );
-    }
+      // // Add ellipsis after first page if needed
+      // if (startPage > 1) {
+      //   buttons.push(
+      //     <span key="ellipsis-start" className="px-3 py-1">
+      //       ...
+      //     </span>
+      //   );
+      // }
+      // Add ellipsis after first page if needed
+      if (startPage > 1) {
+        buttons.push(
+          <span key="ellipsis-start" className="px-3 py-1">
+            ...
+          </span>
+        );
+      }
 
-    // Always show last page if there's more than one page
-    if (totalPages > 5 && page != totalPages - 1) {
-      buttons.push(
-        <button
-          key="last"
-          onClick={() => handlePageChange(totalPages - 1)}
-          className={`px-3 py-1 mx-1 rounded ${
-            page === totalPages - 1
-              ? "bg-purple"
-              : "bg-black text-purple hover:bg-purple hover:text-black"
-          }`}
-          disabled={page === totalPages - 1}
-        >
-          {totalPages}
-        </button>
-      );
+      // Add middle page buttons
+      for (let i = startPage; i <= endPage; i++) {
+        buttons.push(
+          <button
+            key={i}
+            onClick={() => handlePageChange(i)}
+            className={`px-3 py-1 mx-1 rounded text-black ${
+              page === i
+                ? "bg-purple "
+                : "bg-black text-purple hover:bg-purple hover:text-black"
+            }`}
+          >
+            {i + 1}
+          </button>
+        );
+      }
+
+      // Add ellipsis before last page if needed
+      if (endPage < totalPages - 1) {
+        buttons.push(
+          <span key="ellipsis-end" className="px-3 py-1">
+            ...
+          </span>
+        );
+      }
+
+      // Always show last page if there's more than one page
+      if (totalPages > 5 && page != totalPages - 1 && page != totalPages - 2) {
+        buttons.push(
+          <button
+            key="last"
+            onClick={() => handlePageChange(totalPages - 1)}
+            className={`px-3 py-1 mx-1 rounded ${
+              page === totalPages - 1
+                ? "bg-purple"
+                : "bg-black text-purple hover:bg-purple hover:text-black"
+            }`}
+            disabled={page === totalPages - 1}
+          >
+            {totalPages}
+          </button>
+        );
+      }
     }
 
     return buttons;
@@ -247,7 +298,9 @@ export default function RecentFormsList() {
   return (
     <div className="px-[5.5rem] py-5">
       <div className="flex justify-between items-center mb-5">
-        <h2 className="md:text-xl text-lg">Recent forms</h2>
+        <h2 className="md:text-xl text-lg">
+          {searchQuery ? `Search results for "${searchQuery}"` : "Recent forms"}
+        </h2>
         <div className="flex items-center space-x-2">
           <label htmlFor="rows-per-page" className="text-purple">
             Forms per page:
@@ -283,6 +336,19 @@ export default function RecentFormsList() {
       {loading && <p>Loading forms...</p>}
       {!loading && error && <p>Error: {error}</p>}
 
+      {!loading && !error && searchQuery && filteredForms.length === 0 && (
+        <div className="text-center py-8">
+          <p>No forms found matching "{searchQuery}"</p>
+          <Button
+            variant="contained"
+            className="mt-4"
+            onClick={() => dispatch(formsActions.setSearchQuery(""))}
+          >
+            Clear Search
+          </Button>
+        </div>
+      )}
+
       <div className="recentforms w-full grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-5">
         {paginatedForms && paginatedForms.length > 0
           ? paginatedForms.map((form) => (
@@ -314,12 +380,12 @@ export default function RecentFormsList() {
                 </div>
               </div>
             ))
-          : !error && <p>No recent forms</p>}
+          : !loading && !error && !searchQuery && <p>No recent forms</p>}
       </div>
 
       {/* Pagination controls */}
       {/* {!loading && !error && forms.length > 0 && ( */}
-      {!loading && forms.length > 0 && (
+      {!loading && filteredForms.length > rowsPerPage && (
         <div className="mt-6 flex justify-center items-center">
           <button
             onClick={() => handlePageChange(page - 1)}

@@ -1,11 +1,15 @@
 // import { useEffect } from "react";
-import { Button, ThemeProvider } from "@mui/material";
+import { Button } from "@mui/material";
 
-import Theme from "../../theme/Theme";
+// import Theme from "../../theme/Theme";
 import QuestionsUI from "./QuestionsUI";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/rootReducer";
-import { createForm, formsActions } from "../../store/formsSlice";
+import {
+  createFormThunk,
+  formsActions,
+  updateFormThunk,
+} from "../../store/formsSlice";
 import { AppDispatch } from "../../store/Store";
 import { useNavigate } from "react-router-dom";
 // import selectQuestionsByFormId from "../SelectedQuestionsByFormId";
@@ -25,13 +29,14 @@ export default function QuestionsForm() {
   const currentForm = useSelector((state: RootState) =>
     state.forms.forms.find((form) => form.id === currentFormId)
   );
-  // const { forms, error, loading } = useSelector(
-  //   (state: RootState) => state.forms
-  // );
+  // const forms = useSelector((state: RootState) => state.forms.forms);
 
-  const handleCreateForm = async () => {
+  const formTitle = currentForm?.formTitle || "";
+  const formDescription = currentForm?.formDescription || "";
+
+  const handleSubmitForm = async () => {
     if (!currentForm) {
-      alert("No form data found to create.");
+      alert("No form data found.");
       return;
     }
     const { id, formTitle, formDescription, questions } = currentForm;
@@ -49,31 +54,53 @@ export default function QuestionsForm() {
       formDescription,
       questions,
       lastOpened: new Date().toISOString(),
+      newForm: false,
     };
 
     try {
-      await dispatch(createForm(formData)).unwrap(); // Unwrap to handle errors directly
+      // Check if this form already exists in the store
 
-      alert("Form created successfully!");
+      if (currentForm.newForm) {
+        await dispatch(createFormThunk(formData)).unwrap();
+        // dispatch(formsActions.createNewForm(formData));
+        alert("Form created successfully!");
+      } else {
+        await dispatch(updateFormThunk(formData)).unwrap();
+        // dispatch(formsActions.updateForm(formData));
+        alert("Form updated successfully!");
+      }
+
+      // const existingFormIndex = forms.findIndex((form) => form.id === id);
+      // const isExistingForm = existingFormIndex !== -1;
+
+      // if (isExistingForm) {
+      //   // If form exists, update it
+      //   await dispatch(updateFormThunk(formData)).unwrap();
+      //   alert("Form updated successfully!");
+      // } else {
+      //   // If form doesn't exist, create it
+      //   await dispatch(createForm(formData)).unwrap();
+      //   alert("Form created successfully!");
+      // }
       navigate("/");
     } catch (error) {
-      console.error("Failed to create form:", error);
-      alert("There was an error creating the form.");
+      console.error("Failed to submit form:", error);
+      alert("There was an error submitting the form.");
     }
   };
 
+  //   try {
+  //     await dispatch(createForm(formData)).unwrap(); // Unwrap to handle errors directly
+
+  //     alert("Form created successfully!");
+  //     navigate("/");
+  //   } catch (error) {
+  //     console.error("Failed to create form:", error);
+  //     alert("There was an error creating the form.");
+  //   }
+  // };
+
   // const questions = useSelector((state: RootState) => state.questions.questions);
-  const formTitle = useSelector((state: RootState) =>
-    currentFormId
-      ? state.forms.forms.find((form) => form.id === currentFormId)?.formTitle
-      : ""
-  );
-  const formDescription = useSelector((state: RootState) =>
-    currentFormId
-      ? state.forms.forms.find((form) => form.id === currentFormId)
-          ?.formDescription
-      : ""
-  );
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (currentFormId) {
@@ -112,38 +139,43 @@ export default function QuestionsForm() {
   // },[dispatch, formId])
 
   return (
-    <ThemeProvider theme={Theme}>
-      <div className="questionform h-full pb-4 flex flex-col justify-center items-center px-5">
-        <div className="section md:w-[800px] w-full space-y-5">
-          <div className="questionTitleSection">
-            <div className="questionFormTop border border-solid border-purple bg-black rounded-xl p-5 md:space-y-5 space-y-4">
-              <input
-                type="text"
-                placeholder="Untitled Form"
-                value={formTitle}
-                onChange={handleTitleChange}
-                className="w-full outline-none border-b border-solid border-purple focus:border-b-4 md:pb-2 pb-1 bg-black transition-all ease-linear duration-200 md:text-6xl sm:text-5xl text-4xl"
-              />
-              <input
-                type="text"
-                placeholder="Untitled Description"
-                value={formDescription}
-                onChange={handleDescriptionChange}
-                className="w-full outline-none border-b border-solid border-purple focus:border-b-4 md:py-2 py-1 bg-black transition-all ease-linear duration-200 md:text-4xl sm:text-3xl text-2xl"
-              />
-            </div>
+    <div className="questionform h-full pb-4 flex flex-col justify-center items-center px-5">
+      <div className="section md:w-[800px] w-full space-y-5">
+        <div className="questionTitleSection">
+          <div className="questionFormTop border border-solid border-purple bg-black rounded-xl p-5 md:space-y-5 space-y-4">
+            <input
+              type="text"
+              placeholder="Untitled Form"
+              value={formTitle}
+              onChange={handleTitleChange}
+              className="w-full outline-none border-b border-solid border-purple focus:border-b-4 md:pb-2 pb-1 bg-black transition-all ease-linear duration-200 md:text-6xl sm:text-5xl text-4xl"
+            />
+            <input
+              type="text"
+              placeholder="Untitled Description"
+              value={formDescription}
+              onChange={handleDescriptionChange}
+              className="w-full outline-none border-b border-solid border-purple focus:border-b-4 md:py-2 py-1 bg-black transition-all ease-linear duration-200 md:text-4xl sm:text-3xl text-2xl"
+            />
           </div>
-
-          {currentFormId && <QuestionsUI />}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleCreateForm}
-          >
-            {loading && !error ? "Creating form" : "Create Form"}
-          </Button>
         </div>
+
+        {currentFormId && <QuestionsUI />}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmitForm}
+          disabled={loading}
+        >
+          {loading && !error
+            ? !currentForm?.newForm
+              ? "Updating form"
+              : "Creating Form"
+            : !loading && !currentForm?.newForm
+            ? "Update Form"
+            : "Create Form"}
+        </Button>
       </div>
-    </ThemeProvider>
+    </div>
   );
 }

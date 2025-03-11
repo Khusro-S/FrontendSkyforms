@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import AddFormLogo from "/AddFormLogo.svg";
 import { useDispatch } from "react-redux";
 import { formsActions } from "../../store/formsSlice";
+
 export default function Template() {
   const dispatch = useDispatch();
   const navigate = useNavigate();

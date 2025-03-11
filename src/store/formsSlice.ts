@@ -5,6 +5,7 @@ import {
   deleteFormAPI,
   fetchAllForms,
   fetchFormByIdAPI,
+  updateFormAPI,
   updateFormLastOpenedAPI,
   updateFormTitleAPI,
 } from "../api/api";
@@ -14,6 +15,7 @@ interface FormsState {
   error?: string | null;
   loading?: boolean;
   currentFormId: string | null;
+  searchQuery: string;
 }
 
 export const initialStateForms: FormsState = {
@@ -21,6 +23,7 @@ export const initialStateForms: FormsState = {
   error: null,
   loading: false,
   currentFormId: null,
+  searchQuery: "",
 };
 export const getForms = createAsyncThunk("forms/getAllForms", async () => {
   const response = await fetchAllForms();
@@ -28,7 +31,7 @@ export const getForms = createAsyncThunk("forms/getAllForms", async () => {
   return data as Form[];
 });
 
-export const createForm = createAsyncThunk<Form, Form>(
+export const createFormThunk = createAsyncThunk<Form, Form>(
   "forms/createForm",
   async (formData: Form) => {
     const response = await createFormAPI(formData);
@@ -69,6 +72,20 @@ export const updateFormTitleThunk = createAsyncThunk(
     return { formId, formTitle };
   }
 );
+export const updateFormThunk = createAsyncThunk(
+  "forms/updateForm",
+  async (formData: Form, { rejectWithValue }) => {
+    try {
+      // Assuming updateFormAPI is your API call function
+      await updateFormAPI(formData.id, formData);
+      // Return the form data for the reducer to use
+      return formData;
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue("Failed to update form: ");
+    }
+  }
+);
 
 const formsSlice = createSlice({
   name: "forms",
@@ -102,7 +119,9 @@ const formsSlice = createSlice({
         form.lastOpened = lastOpened;
       }
     },
-
+    setSearchQuery: (state, action: PayloadAction<string>) => {
+      state.searchQuery = action.payload;
+    },
     addMoreQuestionField(state, action: PayloadAction<{ id: string }>) {
       const form = state.forms.find((f) => f.id === action.payload.id);
       if (form) {
@@ -361,6 +380,7 @@ const formsSlice = createSlice({
           },
         ],
         lastOpened: new Date().toISOString(),
+        newForm: true,
       };
 
       state.forms.push(newForm);
@@ -635,14 +655,14 @@ const formsSlice = createSlice({
         state.error = action.error.message || "Failed to fetch forms";
         console.log("Error: ", action.error);
       })
-      .addCase(createForm.pending, (state) => {
+      .addCase(createFormThunk.pending, (state) => {
         state.loading = true;
       })
-      .addCase(createForm.fulfilled, (state, action) => {
+      .addCase(createFormThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.forms.push(action.payload);
       })
-      .addCase(createForm.rejected, (state, action) => {
+      .addCase(createFormThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to create form";
         console.log("Error: ", action.error);
@@ -696,6 +716,25 @@ const formsSlice = createSlice({
         if (formIndex !== -1) {
           state.forms[formIndex].formTitle = formTitle;
         }
+      })
+      // New updateForm reducers
+      .addCase(updateFormThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateFormThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        // Find the form index and update it
+        const index = state.forms.findIndex(
+          (form) => form.id === action.payload.id
+        );
+        if (index !== -1) {
+          state.forms[index] = action.payload;
+        }
+      })
+      .addCase(updateFormThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });
