@@ -1,75 +1,42 @@
-import { useDispatch, useSelector } from "react-redux";
-import { formsActions } from "../../../store/formsSlice";
-import { RootState } from "../../../store/rootReducer";
-import { useRef } from "react";
-import selectQuestionsByFormId from "../../SelectedQuestionsByFormId";
-import { FileData } from "../../../types/types";
-import {
-  AudioFile,
-  DeleteForever,
-  Description,
-  FileDownload,
-  FileUpload,
-  InsertDriveFile,
-  PictureAsPdf,
-  VideoFile,
-} from "@mui/icons-material";
+// viewform/FileUploadInput.tsx
+import React, { useRef } from "react";
 import { Button } from "@mui/material";
+import FileUpload from "@mui/icons-material/FileUpload";
+import DeleteForever from "@mui/icons-material/DeleteForever";
+import FileDownload from "@mui/icons-material/FileDownload";
+import PictureAsPdf from "@mui/icons-material/PictureAsPdf";
+import Description from "@mui/icons-material/Description";
+import InsertDriveFile from "@mui/icons-material/InsertDriveFile";
+import AudioFile from "@mui/icons-material/AudioFile";
+import VideoFile from "@mui/icons-material/VideoFile";
+import { Question } from "../../types/types";
 
-// interface FileUploadInputProps {
-//   questionId: string;
-//   accept?: string;
-// }
+interface FileUploadInputProps {
+  question: Question;
+  answer: File | null;
+  onAnswerChange: (file: File | null) => void;
+}
 
-export default function FileUploadInput({
-  questionId,
-}: {
-  questionId: string;
-}) {
+export default function FileUploadInputViewForm({
+  // question,
+  answer,
+  onAnswerChange,
+}: FileUploadInputProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const dispatch = useDispatch();
-  const currentFormId = useSelector(
-    (state: RootState) => state.forms.currentFormId
-  );
-
-  const questions = useSelector((state: RootState) =>
-    currentFormId ? selectQuestionsByFormId(state, currentFormId) : []
-  );
-
-  const question = questions.find((q) => q.id === questionId);
-
-  if (!question) {
-    return <div>Question not found</div>;
-  }
-
-  //   const fileData = questions[index].file;
 
   const handleFileUpload = (file: File) => {
-    const fileData: FileData = {
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      url: URL.createObjectURL(file), // For preview purposes
-    };
-    if (currentFormId)
-      dispatch(
-        formsActions.setFile({
-          id: currentFormId,
-          questionId,
-          file: fileData,
-        })
-      );
+    onAnswerChange(file);
   };
+
   const handleRemoveFile = () => {
-    if (currentFormId)
-      dispatch(formsActions.removeFile({ id: currentFormId, questionId }));
+    onAnswerChange(null);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
-  const isImage = question.file && question.file.type.startsWith("image/");
+  const isImage = answer && answer.type.startsWith("image/");
 
   const fileIcons: { [key: string]: React.ComponentType } = {
     "application/pdf": PictureAsPdf,
@@ -91,9 +58,7 @@ export default function FileUploadInput({
     return fileIcons[fileType];
   };
 
-  const IconComponent = question.file
-    ? getFileIcon(question.file.type)
-    : undefined;
+  const IconComponent = answer ? getFileIcon(answer.type) : undefined;
 
   const fileTypeMappings: { [key: string]: string } = {
     "application/pdf": "PDF",
@@ -114,16 +79,17 @@ export default function FileUploadInput({
   const getFriendlyFileType = (fileType: string): string => {
     return fileTypeMappings[fileType] || fileType;
   };
+
   return (
     <>
-      {question.file ? (
+      {answer ? (
         <div>
           {isImage ? (
             <div className="mt-2 flex flex-col gap-2 items-start">
-              <p>File name: {question.file.name}</p>
+              <p>File name: {answer.name}</p>
               <img
-                src={question.file.url}
-                alt={question.file.name}
+                src={URL.createObjectURL(answer)}
+                alt={answer.name}
                 className="max-w-52 rounded-lg object-contain object-center"
               />
               <div className="flex items-center gap-2">
@@ -134,7 +100,6 @@ export default function FileUploadInput({
                   <input
                     ref={fileInputRef}
                     type="file"
-                    // accept={accept}
                     onChange={(e) => {
                       if (e.target.files?.[0])
                         handleFileUpload(e.target.files[0]);
@@ -151,10 +116,10 @@ export default function FileUploadInput({
                   <IconComponent />
                 </div>
               )}
-              <p>File name: {question.file.name}</p>
-              <p>File type: {getFriendlyFileType(question.file.type)}</p>
+              <p>File name: {answer.name}</p>
+              <p>File type: {getFriendlyFileType(answer.type)}</p>
               <div className="flex gap-2 items-center">
-                <a href={question.file.url} download={question.file.name}>
+                <a href={URL.createObjectURL(answer)} download={answer.name}>
                   <FileDownload />
                 </a>
                 <DeleteForever onClick={handleRemoveFile} />
@@ -163,7 +128,6 @@ export default function FileUploadInput({
                   <input
                     ref={fileInputRef}
                     type="file"
-                    // accept={accept}
                     onChange={(e) => {
                       if (e.target.files?.[0])
                         handleFileUpload(e.target.files[0]);
@@ -181,14 +145,11 @@ export default function FileUploadInput({
           component="label"
           startIcon={<FileUpload />}
           className="w-1/3"
-          // disabled
         >
           Upload File
           <input
-            disabled
             ref={fileInputRef}
             type="file"
-            // accept={accept}
             onChange={(e) => {
               if (e.target.files?.[0]) handleFileUpload(e.target.files[0]);
             }}

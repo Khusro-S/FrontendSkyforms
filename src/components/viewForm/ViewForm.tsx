@@ -1,34 +1,42 @@
 import { useDispatch, useSelector } from "react-redux";
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
+  // Accordion,
+  // AccordionDetails,
+  // AccordionSummary,
   Typography,
   FormControlLabel,
-  TextField,
+  // TextField,
   Button,
+  Input,
 } from "@mui/material";
 // import { FileUpload } from '@mui/icons-material';
-import { FileData, Form, QuestionType } from "../../types/types";
+import { Form, Question, QuestionType } from "../../types/types";
 import { RootState } from "../../store/rootReducer";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchFormByIdThunk } from "../../store/formsSlice";
 import { AppDispatch } from "../../store/Store";
-
+import FileUploadInputViewForm from "./FileUploadInputViewForm";
+// import { FileUploadOutlined } from "@mui/icons-material";
+// import FileUploadInput from "../blankForm/inputComponents/FileUploadInput";
+// import AnswerInputs from "../blankForm/inputComponents/AnswerInputs";
+type AnswerValue = string | string[] | File | number | Date | null;
 interface Answer {
-  questionId: string;
-  answer: string | string[] | FileData | number | null | Date;
+  question: Question;
+  answer: AnswerValue;
+  // onAnswerChange: (answer: AnswerValue) => void;
 }
 
 export default function ViewForm() {
   const dispatch = useDispatch<AppDispatch>();
+  const [answers, setAnswers] = useState<Answer[]>([]);
   const { id: currentFormId } = useParams<{ id: string }>();
-  {
-    console.log("currentform id by useParam", currentFormId);
-  }
+  // {
+  //   console.log("currentform id by useParam", currentFormId);
+  // }
   const [loading, setLoading] = useState(true);
   const [localForm, setLocalForm] = useState<Form | null>(null);
+  // const [formValid, setFormValid] = useState(true);
 
   // Fetch from Redux store
   const reduxForm = useSelector((state: RootState) =>
@@ -58,6 +66,16 @@ export default function ViewForm() {
         });
     }
   }, [dispatch, currentFormId]);
+
+  useEffect(() => {
+    if (currentForm && currentForm.questions) {
+      const initialAnswers = currentForm.questions.map((question) => ({
+        question: question,
+        answer: null,
+      }));
+      setAnswers(initialAnswers);
+    }
+  }, [currentForm]);
   // const currentFormId = useSelector(
   //   (state: RootState) => state.forms.currentFormId
   // );
@@ -65,43 +83,77 @@ export default function ViewForm() {
   //   state.forms.forms.find((form) => form.id === currentFormId)
   // );
 
-  const [answers, setAnswers] = useState<Answer[]>([]);
-
-  if (!currentForm) {
-    return <div>Form not found.</div>;
-  }
-
-  const handleAnswerChange = (
-    questionId: string,
-    answer: string | string[] | FileData | number | null | Date
-  ) => {
-    const existingAnswerIndex = answers.findIndex(
-      (a) => a.questionId === questionId
+  const handleAnswerChange = (question: Question, answer: AnswerValue) => {
+    setAnswers((prevAnswers) =>
+      prevAnswers.map((a) =>
+        a.question.id === question.id ? { ...a, question: question, answer } : a
+      )
     );
-    if (existingAnswerIndex !== -1) {
-      const updatedAnswers = [...answers];
-      updatedAnswers[existingAnswerIndex].answer = answer;
-      setAnswers(updatedAnswers);
-    } else {
-      setAnswers([...answers, { questionId, answer }]);
+  };
+  // const handleAnswerChange = (
+  //   questionId: string,
+  //   answer: string | string[] | FileData | number | null | Date
+  // ) => {
+  //   const existingAnswerIndex = answers.findIndex(
+  //     (a) => a.questionId === questionId
+  //   );
+  //   if (existingAnswerIndex !== -1) {
+  //     const updatedAnswers = [...answers];
+  //     updatedAnswers[existingAnswerIndex].answer = answer;
+  //     setAnswers(updatedAnswers);
+  //   } else {
+  //     setAnswers([...answers, { questionId, answer }]);
+  //   }
+  // };
+
+  const validateForm = () => {
+    if (!currentForm) return false;
+
+    for (const question of currentForm.questions) {
+      if (question.required) {
+        const answer = answers.find(
+          (a) => a.question.id === question.id
+        )?.answer;
+        if (
+          answer === null ||
+          answer === undefined ||
+          (Array.isArray(answer) && answer.length === 0) ||
+          (typeof answer === "string" && answer.trim() === "")
+        ) {
+          return false;
+        }
+      }
     }
+    return true;
   };
 
   const handleSubmit = () => {
-    // Process answers here
-    console.log("Submitted answers:", answers);
-    // You can send the answers to your backend or perform other actions
+    const isValid = validateForm();
+    // setFormValid(isValid);
+
+    if (isValid) {
+      console.log("Answers:", answers);
+      alert("Answers submitted!");
+    } else {
+      alert("Please fill in all required fields.");
+    }
   };
 
+  if (loading) {
+    return <div>Laoding...</div>;
+  }
+  if (!currentForm) {
+    return <div>Form not found.</div>;
+  }
   return (
     <div className="form-fill h-full pb-4 flex flex-col justify-center items-center px-5">
       <div className="section md:w-[800px] w-full space-y-5">
         <div className="form-title-section">
           <div className="form-title border border-solid border-purple bg-black rounded-xl p-5 md:space-y-5 space-y-4">
-            <Typography variant="h4" className="text-white">
+            <Typography variant="h3" className="text-white">
               {currentForm.formTitle}
             </Typography>
-            <Typography variant="subtitle1" className="text-gray-400">
+            <Typography variant="h4" className="text-gray-400">
               {currentForm.formDescription}
             </Typography>
           </div>
@@ -109,114 +161,92 @@ export default function ViewForm() {
 
         {/* {currentForm.questions.map((question, index) => ( */}
         {currentForm.questions.map((question) => (
-          <Accordion key={question.id} defaultExpanded className="md:p-3 p-1">
-            <AccordionSummary>
-              <Typography color="warning">
-                {question.required
-                  ? "* " + question.questionText
-                  : question.questionText}
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <div className="flex flex-col gap-y-2 px-3">
-                {question.questionType === QuestionType.RADIO ||
-                question.questionType === QuestionType.CHECKBOX ? (
-                  question.options?.map((option, optionIndex) => (
+          <div
+            key={question.id}
+            className="border border-solid border-purple bg-black rounded-xl p-5 md:space-y-5 space-y-4"
+          >
+            <Typography color="warning" variant="h6">
+              {question.required
+                ? "* " + question.questionText
+                : question.questionText}
+            </Typography>
+            <div className="flex flex-col gap-y-2 px-3">
+              {question.questionType === QuestionType.RADIO ||
+              question.questionType === QuestionType.CHECKBOX ? (
+                <div className="flex flex-col">
+                  {" "}
+                  {/* Wrap options in a flex column */}
+                  {question.options?.map((option, optionIndex) => (
                     <FormControlLabel
                       key={optionIndex}
                       control={
                         <input
                           type={question.questionType}
-                          name={question.id}
-                          value={option.optionText}
-                          onChange={() => {
-                            const selectedOptions =
-                              question.questionType === QuestionType.CHECKBOX
-                                ? answers.find(
-                                    (a) => a.questionId === question.id
-                                  )?.answer
-                                : [];
-                            if (
-                              question.questionType === QuestionType.CHECKBOX
-                            ) {
-                              if (
-                                (selectedOptions as string[]).includes(
-                                  option.optionText
-                                )
-                              ) {
+                          checked={
+                            question.questionType === QuestionType.RADIO
+                              ? answers.find(
+                                  (a) => a.question.id === question.id
+                                )?.answer === option.optionText
+                              : (
+                                  answers.find(
+                                    (a) => a.question.id === question.id
+                                  )?.answer as string[]
+                                )?.includes(option.optionText)
+                          }
+                          onChange={(e) => {
+                            if (question.questionType === QuestionType.RADIO) {
+                              handleAnswerChange(question, option.optionText);
+                            } else {
+                              const currentAnswers =
+                                (answers.find(
+                                  (a) => a.question.id === question.id
+                                )?.answer as string[]) || [];
+                              if (e.target.checked) {
+                                handleAnswerChange(question, [
+                                  ...currentAnswers,
+                                  option.optionText,
+                                ]);
+                              } else {
                                 handleAnswerChange(
-                                  question.id,
-                                  (selectedOptions as string[]).filter(
+                                  question,
+                                  currentAnswers.filter(
                                     (item) => item !== option.optionText
                                   )
                                 );
-                              } else {
-                                handleAnswerChange(question.id, [
-                                  ...(selectedOptions as string[]),
-                                  option.optionText,
-                                ]);
                               }
-                            } else {
-                              handleAnswerChange(
-                                question.id,
-                                option.optionText
-                              );
                             }
                           }}
                         />
                       }
                       label={<Typography>{option.optionText}</Typography>}
                     />
-                  ))
-                ) : question.questionType === QuestionType.SHORT_ANSWER ||
-                  question.questionType === QuestionType.LONG_ANSWER ? (
-                  <TextField
-                    multiline={
-                      question.questionType === QuestionType.LONG_ANSWER
-                    }
-                    rows={
-                      question.questionType === QuestionType.LONG_ANSWER ? 4 : 1
-                    }
-                    placeholder="Your answer"
-                    onChange={(e) =>
-                      handleAnswerChange(question.id, e.target.value)
-                    }
-                  />
-                ) : question.questionType === QuestionType.FILE_UPLOAD ? (
-                  <input
-                    type="file"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        const file = e.target.files[0];
-                        const fileData: FileData = {
-                          name: file.name,
-                          size: file.size,
-                          type: file.type,
-                          url: URL.createObjectURL(file),
-                        };
-                        handleAnswerChange(question.id, fileData);
-                      }
-                    }}
-                  />
-                ) : question.questionType === QuestionType.DATE ? (
-                  <TextField
-                    type="date"
-                    onChange={(e) => {
-                      handleAnswerChange(question.id, new Date(e.target.value));
-                    }}
-                  />
-                ) : question.questionType === QuestionType.PHONE_NUMBER ? (
-                  <TextField
-                    type="number"
-                    placeholder="Phone number"
-                    onChange={(e) => {
-                      handleAnswerChange(question.id, Number(e.target.value));
-                    }}
-                  />
-                ) : null}
-              </div>
-            </AccordionDetails>
-          </Accordion>
+                  ))}
+                </div>
+              ) : question.questionType === QuestionType.FILE_UPLOAD ? (
+                <FileUploadInputViewForm
+                  question={question}
+                  answer={
+                    answers.find((a) => a.question.id === question.id)
+                      ?.answer as File | null
+                  }
+                  onAnswerChange={(file: File | null) =>
+                    handleAnswerChange(question, file)
+                  }
+                />
+              ) : (
+                <AnswerInput
+                  question={question}
+                  answer={
+                    answers.find((a) => a.question.id === question.id)
+                      ?.answer ?? null
+                  }
+                  onAnswerChange={(answer) =>
+                    handleAnswerChange(question, answer)
+                  }
+                />
+              )}
+            </div>
+          </div>
         ))}
 
         <Button variant="contained" color="primary" onClick={handleSubmit}>
@@ -224,5 +254,61 @@ export default function ViewForm() {
         </Button>
       </div>
     </div>
+  );
+}
+
+function AnswerInput({
+  question,
+  answer,
+  onAnswerChange,
+}: {
+  question: Question;
+  answer: AnswerValue;
+  onAnswerChange: (answer: AnswerValue) => void;
+}) {
+  return (
+    <>
+      {question.questionType === "shortAnswer" && (
+        <Input
+          type="text"
+          className="w-full"
+          required={question.required}
+          value={answer || ""}
+          onChange={(e) => onAnswerChange(e.target.value)}
+          placeholder="Short Answer"
+        />
+      )}
+
+      {question.questionType === "longAnswer" && (
+        <Input
+          multiline
+          className="w-full"
+          required={question.required}
+          placeholder="Long answer"
+          value={answer || ""}
+          onChange={(e) => onAnswerChange(e.target.value)}
+        />
+      )}
+
+      {question.questionType === "date" && (
+        <Input
+          type="date"
+          required={question.required}
+          value={answer || ""}
+          onChange={(e) => onAnswerChange(e.target.value)}
+        />
+      )}
+
+      {question.questionType === "phoneNumber" && (
+        <Input
+          type="number"
+          className="w-[]"
+          required={question.required}
+          value={answer || ""}
+          onChange={(e) => onAnswerChange(e.target.value)}
+          placeholder="552 XXX XX XX"
+        />
+      )}
+    </>
   );
 }

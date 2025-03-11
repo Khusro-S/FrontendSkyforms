@@ -69,6 +69,7 @@ export default function AnswerInputs({ questionId }: { questionId: string }) {
     <>
       {question.questionType === "shortAnswer" && (
         <Input
+          disabled
           type="text"
           value={question.shortAnswer || ""}
           onChange={(e) => {
@@ -81,6 +82,7 @@ export default function AnswerInputs({ questionId }: { questionId: string }) {
 
       {question.questionType === "longAnswer" && (
         <Input
+          disabled
           multiline
           placeholder="Long answer"
           value={question.longAnswer || ""}
@@ -90,6 +92,7 @@ export default function AnswerInputs({ questionId }: { questionId: string }) {
 
       {question.questionType === "date" && (
         <Input
+          disabled
           type="date"
           value={question.date || ""}
           onChange={(e) => {
@@ -101,6 +104,7 @@ export default function AnswerInputs({ questionId }: { questionId: string }) {
 
       {question.questionType === "phoneNumber" && (
         <Input
+          disabled
           type="number"
           value={question.phoneNumber || ""}
           onChange={(e) => {

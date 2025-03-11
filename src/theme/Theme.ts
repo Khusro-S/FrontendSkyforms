@@ -221,6 +221,16 @@ const Theme = createTheme({
     MuiInput: {
       styleOverrides: {
         root: ({ theme }) => ({
+          "&.Mui-disabled": {
+            color: "rgba(255, 255, 255, 0.6)", // Adjust the color for disabled state
+            "& .MuiInputBase-input": {
+              WebkitTextFillColor: "rgba(255, 255, 255, 0.6)", // Ensure input text color is also changed
+            },
+            "&::before": {
+              //Change the underline color
+              borderBottomColor: "rgba(128, 128, 128, 0.5)",
+            },
+          },
           "&:before": {
             borderBottomColor: theme.palette.secondary.main, // Default color
           },

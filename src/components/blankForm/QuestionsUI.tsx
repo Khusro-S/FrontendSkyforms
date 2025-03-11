@@ -178,8 +178,10 @@ function QuestionsUI() {
                               </AccordionSummary>
                               <AccordionDetails>
                                 <div className="flex flex-col gap-y-2 px-3">
-                                  {question.questionType === "radio" ||
-                                  question.questionType === "checkbox" ? (
+                                  {question.questionType ===
+                                    QuestionType.RADIO ||
+                                  question.questionType ===
+                                    QuestionType.CHECKBOX ? (
                                     question.options?.map(
                                       (option, optionIndex) => (
                                         <FormControlLabel
