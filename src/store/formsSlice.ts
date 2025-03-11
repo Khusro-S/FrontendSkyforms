@@ -39,7 +39,7 @@ export const createFormThunk = createAsyncThunk<Form, Form>(
   }
 );
 
-export const fetchFormById = createAsyncThunk(
+export const fetchFormByIdThunk = createAsyncThunk(
   "forms/fetchFormById",
   async (formId: string) => {
     const response = await fetchFormByIdAPI(formId);
@@ -667,17 +667,17 @@ const formsSlice = createSlice({
         state.error = action.error.message || "Failed to create form";
         console.log("Error: ", action.error);
       })
-      .addCase(fetchFormById.pending, (state) => {
+      .addCase(fetchFormByIdThunk.pending, (state) => {
         state.loading = true;
       })
-      .addCase(fetchFormById.fulfilled, (state, action) => {
+      .addCase(fetchFormByIdThunk.fulfilled, (state, action) => {
         state.loading = false;
         const fetchedForm = action.payload;
         state.forms = state.forms.map((form) =>
           form.id === fetchedForm.id ? fetchedForm : form
         );
       })
-      .addCase(fetchFormById.rejected, (state, action) => {
+      .addCase(fetchFormByIdThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to fetch form";
         console.log("Error: ", action.error);

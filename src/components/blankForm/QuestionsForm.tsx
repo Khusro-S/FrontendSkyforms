@@ -7,11 +7,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/rootReducer";
 import {
   createFormThunk,
+  fetchFormByIdThunk,
   formsActions,
   updateFormThunk,
 } from "../../store/formsSlice";
 import { AppDispatch } from "../../store/Store";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Form } from "../../types/types";
 // import selectQuestionsByFormId from "../SelectedQuestionsByFormId";
 // import { useEffect } from "react";
 // import axios from "axios";
@@ -20,17 +23,46 @@ import { useNavigate } from "react-router-dom";
 export default function QuestionsForm() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const [locaLoading, setLocalLoading] = useState(true);
+  const [localForm, setLocalForm] = useState<Form | null>(null);
 
   const { error, loading } = useSelector((state: RootState) => state.forms);
 
   const currentFormId = useSelector(
     (state: RootState) => state.forms.currentFormId
   );
-  const currentForm = useSelector((state: RootState) =>
+  const reduxForm = useSelector((state: RootState) =>
     state.forms.forms.find((form) => form.id === currentFormId)
   );
-  // const forms = useSelector((state: RootState) => state.forms.forms);
 
+  const currentForm = localForm || reduxForm;
+  // const forms = useSelector((state: RootState) => state.forms.forms);
+  useEffect(() => {
+    if (id) {
+      setLocalLoading(true);
+
+      dispatch(fetchFormByIdThunk(id))
+        .unwrap()
+        .then((fetchedForm) => {
+          setLocalForm(fetchedForm);
+
+          // Also update the Redux store to keep it in sync
+          if (!reduxForm) {
+            dispatch(formsActions.setCurrentFormId(id));
+          }
+
+          setLocalLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching form:", error);
+          setLocalLoading(false);
+        });
+    } else {
+      // If no ID, we're creating a new form
+      setLocalLoading(false);
+    }
+  }, [dispatch, id, reduxForm]);
   const formTitle = currentForm?.formTitle || "";
   const formDescription = currentForm?.formDescription || "";
 

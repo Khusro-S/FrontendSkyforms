@@ -296,8 +296,8 @@ export default function RecentFormsList() {
   };
 
   return (
-    <div className="px-[5.5rem] py-5">
-      <div className="flex justify-between items-center mb-5">
+    <div className="px-14 md:px-[5.5rem] py-5">
+      <div className="flex justify-between items-center mb-5 max-md:-translate-x-14 max-md:transform max-md:w-screen max-md:px-4">
         <h2 className="md:text-xl text-lg">
           {searchQuery ? `Search results for "${searchQuery}"` : "Recent forms"}
         </h2>

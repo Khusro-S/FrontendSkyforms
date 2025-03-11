@@ -1,6 +1,13 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import skyformLogo from "/skyformsLogo.svg";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../store/rootReducer";
+import { useEffect, useState } from "react";
+import { IconButton, Tooltip } from "@mui/material";
+import { FileCopy } from "@mui/icons-material";
+import { formsActions } from "../../store/formsSlice";
+
 export default function BlankFormNavbar() {
   //   const handleKeyDown = (e: React.KeyboardEvent) => {
   //     if (e.key === "Enter") {
@@ -8,7 +15,44 @@ export default function BlankFormNavbar() {
   //     }
   //   };
   //   const navigate = useNavigate();
+  // const navigate = useNavigate();
+  const currentFormId = useSelector(
+    (state: RootState) => state.forms.currentFormId
+  );
+  const [shareableLink, setShareableLink] = useState<string>("");
+  const { formId } = useParams();
+  const dispatch = useDispatch();
 
+  useEffect(() => {
+    if (formId) {
+      dispatch(formsActions.setCurrentFormId(formId));
+    }
+  }, [formId, dispatch]);
+  const generateShareableLink = () => {
+    if (currentFormId) {
+      const link = `${window.location.origin}/form/${currentFormId}`; // Construct the link
+      setShareableLink(link);
+      return link;
+    }
+    return "";
+  };
+
+  // const handleVisibilityClick = () => {
+  //   if (currentFormId) {
+  //     navigate(`/form/${currentFormId}`);
+  //   }
+  // };
+
+  const handleCopyLink = () => {
+    if (shareableLink) {
+      navigator.clipboard.writeText(shareableLink);
+      alert("Link copied to clipboard!");
+    } else {
+      generateShareableLink();
+      navigator.clipboard.writeText(generateShareableLink());
+      alert("Link copied to clipboard!");
+    }
+  };
   return (
     <nav className="flex justify-between items-center lg:px-7 lg:py-4 md:px-5 py-2 px-2 md:text-2xl sm:text-xl text-lg w-full h-full">
       <div className="flex md:gap-x-4 gap-x-3 items-center w-full">
@@ -37,18 +81,30 @@ export default function BlankFormNavbar() {
         </span> */}
       </div>
       <div className="flex lg:gap-x-8 md:gap-x-6 gap-x-4 items-center">
-        <VisibilityIcon
-          titleAccess="View form"
-          className="hover:cursor-pointer"
-          sx={{
-            fontSize: {
-              xs: "24px",
-              sm: "28px",
-              md: "32px",
-              lg: "40px",
-            },
-          }}
-        />
+        <Link
+          to={currentFormId ? `/form/${currentFormId}` : ""}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <VisibilityIcon
+            titleAccess="View form"
+            className="hover:cursor-pointer"
+            sx={{
+              fontSize: {
+                xs: "24px",
+                sm: "28px",
+                md: "32px",
+                lg: "40px",
+              },
+            }}
+            // onClick={handleVisibilityClick}
+          />
+        </Link>
+        <Tooltip title="Copy Shareable link" color="primary">
+          <IconButton onClick={handleCopyLink}>
+            <FileCopy />
+          </IconButton>
+        </Tooltip>
         <div className="rounded-full md:h-14 md:w-14 sm:w-11 sm:h-11 w-9 h-9 bg-black border border-solid border-purple flex justify-center items-center hover:shadow hover:cursor-pointer transition-all ease-linear duration-200">
           K
         </div>
