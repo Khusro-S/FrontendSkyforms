@@ -16,6 +16,9 @@ interface FormsState {
   loading?: boolean;
   currentFormId: string | null;
   searchQuery: string;
+  sortBy: string;
+  formsPerPage: number;
+  currentPage: number;
 }
 
 export const initialStateForms: FormsState = {
@@ -24,6 +27,9 @@ export const initialStateForms: FormsState = {
   loading: false,
   currentFormId: null,
   searchQuery: "",
+  sortBy: "lastOpened",
+  formsPerPage: 8,
+  currentPage: 1,
 };
 export const getForms = createAsyncThunk("forms/getAllForms", async () => {
   const response = await fetchAllForms();
@@ -96,9 +102,23 @@ const formsSlice = createSlice({
     },
 
     addForm(state, action: PayloadAction<Form>) {
-      state.forms.push(action.payload);
+      state.forms.push({
+        ...action.payload,
+        // createdAt: Date.now().toISOString(),
+        lastOpened: Date.now().toString(),
+      });
+      state.forms = sortForms(state.forms, state.sortBy);
     },
-
+    setSortBy: (state, action: PayloadAction<string>) => {
+      state.sortBy = action.payload;
+      state.forms = sortForms(state.forms, state.sortBy);
+    },
+    setFormsPerPage(state, action: PayloadAction<number>) {
+      state.formsPerPage = action.payload; // Update forms per page
+    },
+    setCurrentPage(state, action: PayloadAction<number>) {
+      state.currentPage = action.payload; // Update current page
+    },
     removeForm(state, action: PayloadAction<string>) {
       state.forms = state.forms.filter((form) => form.id !== action.payload);
     },
@@ -647,8 +667,9 @@ const formsSlice = createSlice({
         state.loading = true;
       })
       .addCase(getForms.fulfilled, (state, action) => {
+        state.forms = sortForms(action.payload, state.sortBy);
         state.loading = false;
-        state.forms = action.payload;
+        state.error = null;
       })
       .addCase(getForms.rejected, (state, action) => {
         state.loading = false;
@@ -772,7 +793,26 @@ export const {
   setLoading,
   setError,
   setLastOpened,
+  setSearchQuery,
+  setSortBy,
+  setFormsPerPage,
+  setCurrentPage,
 } = formsSlice.actions;
 
 export const formsActions = formsSlice.actions;
 export default formsSlice;
+
+const sortForms = (forms: Form[], sortBy: string) => {
+  return [...forms].sort((a, b) => {
+    if (sortBy === "lastOpened") {
+      const lastOpenedA = a.lastOpened ? new Date(a.lastOpened).getTime() : 0; // Default to 0 if null or undefined
+      const lastOpenedB = b.lastOpened ? new Date(b.lastOpened).getTime() : 0; // Default to 0 if null or undefined
+      return lastOpenedB - lastOpenedA;
+    }
+    if (sortBy === "title") {
+      return a.formTitle.localeCompare(b.formTitle);
+    }
+    // Add other sorting criteria if needed
+    return 0;
+  });
+};

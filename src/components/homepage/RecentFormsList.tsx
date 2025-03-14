@@ -33,13 +33,21 @@ import {
 
 export default function RecentFormsList() {
   const dispatch = useDispatch<AppDispatch>();
-  const { forms, error, loading, searchQuery } = useSelector(
-    (state: RootState) => state.forms
-  );
+  const {
+    forms,
+    error,
+    loading,
+    searchQuery,
+    sortBy,
+    formsPerPage,
+    currentPage,
+  } = useSelector((state: RootState) => state.forms);
+
+  const [localPage, setLocalPage] = useState<number>(currentPage);
 
   // Pagination state
-  const [page, setPage] = useState<number>(0);
-  const [rowsPerPage, setRowsPerPage] = useState<number>(8); // 2x4 grid
+  // const [page, setPage] = useState<number>(0);
+  // const [rowsPerPage, setRowsPerPage] = useState<number>(8); // 2x4 grid
 
   // Single active menu state instead of an object of states
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -64,27 +72,32 @@ export default function RecentFormsList() {
 
   // Reset to first page when search query changes
   useEffect(() => {
-    setPage(0);
-  }, [searchQuery]);
-
+    dispatch(formsActions.setCurrentPage(0));
+    setLocalPage(0);
+  }, [dispatch, searchQuery]);
+  const handleSortByChange = (event: SelectChangeEvent<string>) => {
+    dispatch(formsActions.setSortBy(event.target.value as string));
+    console.log(event.target.value); // Log the new value
+  };
   // Get paginated forms
   // Get paginated forms from filtered forms
   const paginatedForms = useMemo(() => {
     return filteredForms.slice(
-      page * rowsPerPage,
-      page * rowsPerPage + rowsPerPage
+      localPage * formsPerPage,
+      localPage * formsPerPage + formsPerPage
     );
-  }, [filteredForms, page, rowsPerPage]);
+  }, [filteredForms, localPage, formsPerPage]);
 
   // Calculate total pages based on filteredForms
-  const totalPages = Math.ceil(filteredForms.length / rowsPerPage);
+  const totalPages = Math.ceil(filteredForms.length / formsPerPage);
 
   // Ensure page is valid when filteredForms length changes
   useEffect(() => {
-    if (page >= totalPages && totalPages > 0) {
-      setPage(totalPages - 1);
+    if (localPage >= totalPages && totalPages > 0) {
+      setLocalPage(totalPages - 1);
+      dispatch(formsActions.setCurrentPage(totalPages - 1));
     }
-  }, [filteredForms.length, page, totalPages]);
+  }, [filteredForms.length, localPage, totalPages, dispatch]);
 
   // // Calculate total pages
   // const totalPages = Math.ceil(forms.length / rowsPerPage);
@@ -97,9 +110,14 @@ export default function RecentFormsList() {
   // }, [filteredForms.length, page, totalPages]);
 
   // Handle page change
-  const handlePageChange = useCallback((newPage: number) => {
-    setPage(newPage);
-  }, []);
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      // setPage(newPage);
+      setLocalPage(newPage);
+      dispatch(formsActions.setCurrentPage(newPage));
+    },
+    [dispatch]
+  );
 
   // Handle rows per page change
   // const handleRowsPerPageChange = (
@@ -109,8 +127,13 @@ export default function RecentFormsList() {
   //   setPage(0); // Reset to first page when changing rows per page
   // };
   const handleRowsPerPageChange = (event: SelectChangeEvent<number>) => {
-    setRowsPerPage(parseInt(event.target.value as string, 10));
-    // setPage(0); // Reset to first page when changing rows per page (handled by useEffect)
+    // setRowsPerPage(parseInt(event.target.value as string, 10));
+    const newFormsPerPage = parseInt(event.target.value as string, 10);
+    dispatch(formsActions.setFormsPerPage(newFormsPerPage));
+    setLocalPage(0);
+    dispatch(formsActions.setCurrentPage(0));
+
+    // Reset to first page when changing rows per page (handled by useEffect)
   };
 
   const handleFormClick = (id: string) => {
@@ -191,7 +214,7 @@ export default function RecentFormsList() {
     const buttons = [];
     const maxVisiblePages = 5; // Show at most 5 page buttons
 
-    if (filteredForms.length <= rowsPerPage) return [];
+    if (filteredForms.length <= formsPerPage) return [];
     if (totalPages <= 0) return [];
 
     // Always show first page
@@ -200,11 +223,11 @@ export default function RecentFormsList() {
         key="first"
         onClick={() => handlePageChange(0)}
         className={`px-3 py-1 mx-1 rounded text-black ${
-          page === 0
+          currentPage === 0
             ? "bg-purple"
             : "bg-black text-purple hover:bg-purple hover:text-black"
         }`}
-        disabled={page === 0}
+        disabled={currentPage === 0}
       >
         1
       </button>
@@ -213,7 +236,10 @@ export default function RecentFormsList() {
     // Only continue if we have more than 1 page
     if (totalPages > 1) {
       // Calculate range of visible page buttons
-      let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
+      let startPage = Math.max(
+        1,
+        currentPage - Math.floor(maxVisiblePages / 2)
+      );
       const endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 2);
 
       // Adjust start if we're near the end
@@ -254,7 +280,7 @@ export default function RecentFormsList() {
             key={i}
             onClick={() => handlePageChange(i)}
             className={`px-3 py-1 mx-1 rounded text-black ${
-              page === i
+              currentPage === i
                 ? "bg-purple "
                 : "bg-black text-purple hover:bg-purple hover:text-black"
             }`}
@@ -274,17 +300,21 @@ export default function RecentFormsList() {
       }
 
       // Always show last page if there's more than one page
-      if (totalPages > 5 && page != totalPages - 1 && page != totalPages - 2) {
+      if (
+        totalPages > 5 &&
+        currentPage != totalPages - 1 &&
+        currentPage != totalPages - 2
+      ) {
         buttons.push(
           <button
             key="last"
             onClick={() => handlePageChange(totalPages - 1)}
             className={`px-3 py-1 mx-1 rounded ${
-              page === totalPages - 1
+              currentPage === totalPages - 1
                 ? "bg-purple"
                 : "bg-black text-purple hover:bg-purple hover:text-black"
             }`}
-            disabled={page === totalPages - 1}
+            disabled={currentPage === totalPages - 1}
           >
             {totalPages}
           </button>
@@ -310,9 +340,9 @@ export default function RecentFormsList() {
             variant="outlined"
             sx={{ padding: 0, margin: 0 }}
             onChange={handleRowsPerPageChange}
-            value={rowsPerPage}
+            value={formsPerPage}
             size="small"
-            className="bg-black text-purple"
+            // className="bg-black text-purple"
           >
             <MenuItem value={4}>4</MenuItem>
             <MenuItem value={8}>8</MenuItem>
@@ -329,6 +359,30 @@ export default function RecentFormsList() {
             <option value={8}>8</option>
             <option value={12}>12</option>
             <option value={16}>16</option>
+          </select> */}
+          <Select
+            value={sortBy}
+            onChange={handleSortByChange}
+            variant="outlined"
+            sx={{ padding: 0, margin: 0 }}
+            size="small"
+            // className="bg-black text-purple"
+          >
+            <MenuItem value="lastOpened">Last Opened</MenuItem>
+            <MenuItem value="createdAt">Date Created</MenuItem>
+            <MenuItem value="title">Alphabetical</MenuItem>
+          </Select>
+          {/* <select
+            value={sortBy}
+            onChange={(e) => {
+              dispatch(formsActions.setSortBy(e.target.value));
+              console.log(sortBy);
+            }}
+            className="border p-2 rounded"
+          >
+            <option value="lastOpened">Last Opened</option>
+            <option value="createdAt">Date Created</option>
+            <option value="title">Alphabetical</option>
           </select> */}
         </div>
       </div>
@@ -385,19 +439,19 @@ export default function RecentFormsList() {
 
       {/* Pagination controls */}
       {/* {!loading && !error && forms.length > 0 && ( */}
-      {!loading && filteredForms.length > rowsPerPage && (
+      {!loading && filteredForms.length > formsPerPage && (
         <div className="mt-6 flex justify-center items-center">
           <button
-            onClick={() => handlePageChange(page - 1)}
-            disabled={page === 0}
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 0}
             className="px-3 py-1 rounded bg-purple text-black hover:text-purple hover:bg-black disabled:opacity-50 mr-2 disabled:hover:none"
           >
             &lt; Prev
           </button>
           <div className="flex mx-2">{renderPaginationButtons()}</div>
           <button
-            onClick={() => handlePageChange(page + 1)}
-            disabled={page >= totalPages - 1}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage >= totalPages - 1}
             className="px-3 py-1 rounded bg-purple text-black hover:text-purple hover:bg-black disabled:opacity-50 ml-2"
           >
             Next &gt;
