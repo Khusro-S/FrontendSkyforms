@@ -42,3 +42,21 @@ export interface Form {
   lastOpened: string | null;
   newForm: boolean;
 }
+export type AnswerValue =
+  | string
+  | string[]
+  | File
+  | number
+  | Date
+  | null
+  | undefined;
+
+export interface FormResponse {
+  id: string;
+  formId: string;
+  answers: {
+    questionId: string;
+    value: AnswerValue;
+  }[];
+  submittedAt: string;
+}

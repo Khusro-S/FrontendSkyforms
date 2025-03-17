@@ -30,6 +30,7 @@ import {
   Select,
   SelectChangeEvent,
 } from "@mui/material";
+import { deleteFormResponsesThunk } from "../../store/responsesSlice";
 
 export default function RecentFormsList() {
   const dispatch = useDispatch<AppDispatch>();
@@ -206,6 +207,7 @@ export default function RecentFormsList() {
     if (confirmDelete) {
       dispatch(formsActions.removeForm(confirmDelete));
       dispatch(deleteFormThunk(confirmDelete));
+      dispatch(deleteFormResponsesThunk(confirmDelete));
       setConfirmDelete(null);
     }
   };
@@ -369,7 +371,7 @@ export default function RecentFormsList() {
             // className="bg-black text-purple"
           >
             <MenuItem value="lastOpened">Last Opened</MenuItem>
-            <MenuItem value="createdAt">Date Created</MenuItem>
+            {/* <MenuItem value="createdAt">Date Created</MenuItem> */}
             <MenuItem value="title">Alphabetical</MenuItem>
           </Select>
           {/* <select

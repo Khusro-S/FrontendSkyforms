@@ -1,10 +1,19 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { FileData, Form, Question, QuestionType } from "../types/types";
+import {
+  FileData,
+  Form,
+  FormResponse,
+  Question,
+  QuestionType,
+} from "../types/types";
 import {
   createFormAPI,
   deleteFormAPI,
+  deleteFormResponsesAPI,
   fetchAllForms,
   fetchFormByIdAPI,
+  fetchFormResponsesAPI,
+  submitFormResponseAPI,
   updateFormAPI,
   updateFormLastOpenedAPI,
   updateFormTitleAPI,
@@ -89,6 +98,42 @@ export const updateFormThunk = createAsyncThunk(
     } catch (error) {
       console.log(error);
       return rejectWithValue("Failed to update form: ");
+    }
+  }
+);
+
+export const submitFormResponseThunk = createAsyncThunk(
+  "responses/submitFormResponse",
+  async (response: Omit<FormResponse, "submittedAt">, { rejectWithValue }) => {
+    try {
+      const result = await submitFormResponseAPI(response);
+      return result;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const fetchFormResponsesThunk = createAsyncThunk(
+  "responses/fetchFormResponses",
+  async (formId: string, { rejectWithValue }) => {
+    try {
+      const responses = await fetchFormResponsesAPI(formId);
+      return responses;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const deleteFormResponsesThunk = createAsyncThunk(
+  "responses/deleteFormResponses",
+  async (formId: string, { rejectWithValue }) => {
+    try {
+      await deleteFormResponsesAPI(formId);
+      return formId; // Return the formId for reducer logic
+    } catch (error) {
+      return rejectWithValue(error);
     }
   }
 );
@@ -812,7 +857,6 @@ const sortForms = (forms: Form[], sortBy: string) => {
     if (sortBy === "title") {
       return a.formTitle.localeCompare(b.formTitle);
     }
-    // Add other sorting criteria if needed
     return 0;
   });
 };
