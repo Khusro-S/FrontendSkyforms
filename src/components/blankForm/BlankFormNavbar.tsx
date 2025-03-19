@@ -54,7 +54,7 @@ export default function BlankFormNavbar() {
     }
   };
   return (
-    <nav className="flex justify-between items-center lg:px-7 lg:py-4 md:px-5 py-2 px-2 md:text-2xl sm:text-xl text-lg w-full h-full">
+    <nav className="flex justify-between items-center lg:px-7 lg:pt-4 md:px-5 pt-2 px-2 md:text-2xl sm:text-xl text-lg w-full h-full">
       <div className="flex md:gap-x-4 gap-x-3 items-center w-full">
         {/* <HomeTooltip title="Home"> */}
         <Link to="/">

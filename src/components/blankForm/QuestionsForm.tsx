@@ -148,14 +148,14 @@ export default function QuestionsForm() {
               placeholder="Untitled Form"
               value={formTitle}
               onChange={handleTitleChange}
-              className="w-full outline-none border-b border-solid border-purple focus:border-b-4 md:pb-2 pb-1 bg-black transition-all ease-linear duration-200 md:text-6xl sm:text-5xl text-4xl"
+              className="w-full outline-none border-b border-solid border-purple focus:border-b-4 md:pb-2 pb-1 bg-black transition-all ease-linear duration-200 md:text-5xl sm:text-4xl text-3xl"
             />
             <input
               type="text"
               placeholder="Untitled Description"
               value={formDescription}
               onChange={handleDescriptionChange}
-              className="w-full outline-none border-b border-solid border-purple focus:border-b-4 md:py-2 py-1 bg-black transition-all ease-linear duration-200 md:text-4xl sm:text-3xl text-2xl"
+              className="w-full outline-none border-b border-solid border-purple focus:border-b-4 md:py-2 py-1 bg-black transition-all ease-linear duration-200 md:text-3xl sm:text-2xl text-xl"
             />
           </div>
         </div>

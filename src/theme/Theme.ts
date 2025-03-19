@@ -27,18 +27,22 @@ const Theme = createTheme({
         root: ({ theme }) => ({
           fontFamily: "inherit",
           color: theme.palette.primary.main,
-          fontSize: "14px",
+          fontSize: "12px",
+          padding: "6px 10px",
           "@media (min-width: 640px)": {
-            fontSize: "16px",
+            fontSize: "14px",
+            padding: "8px 12px",
           },
           "@media (min-width: 768px)": {
-            fontSize: "18px",
+            fontSize: "16px",
+            padding: "10px 14px",
           },
           "@media (min-width: 1024px)": {
-            fontSize: "20px",
+            fontSize: "18px",
+            padding: "12px 16px",
           },
           borderRadius: "8px",
-          padding: "12px 16px",
+          // padding: "12px 16px",
         }),
       },
     },

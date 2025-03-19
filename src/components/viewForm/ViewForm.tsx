@@ -198,14 +198,18 @@ export default function ViewForm() {
   }
 
   return (
-    <div className="form-fill h-full pb-4 flex flex-col justify-center items-center px-5">
+    <div
+      className={`form-fill py-4 flex flex-col justify-center items-center px-5 ${
+        formSubmitted && "h-screen overflow-hidden"
+      }`}
+    >
       {formSubmitted ? (
         // Success view after submission
-        <div className="section md:w-[800px] w-full space-y-5 flex justify-center items-center min-h-screen">
-          <div className="border border-solid border-green-500 bg-black rounded-xl p-5 md:space-y-5 space-y-4">
+        <div className="section md:w-[800px] w-full space-y-5 flex justify-center items-center">
+          <div className="border border-solid border-green-300 bg-black rounded-xl p-5 md:space-y-5 space-y-4 shadow-2xl">
             <div className="flex justify-center mb-4">
               <svg
-                className="w-16 h-16 text-green-500"
+                className="w-16 h-16 text-green-300"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
