@@ -1,156 +1,265 @@
-import { ThemeProvider } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
-
+import { useEffect, useState } from "react";
+import "../components/auth/card.css";
 import Login from "../components/auth/Login";
 import Signup from "../components/auth/Signup";
-
-import "../components/auth/card.css";
-import Theme from "../theme/Theme";
+import { Alert, Link, Snackbar, Typography } from "@mui/material";
 
 import skylabLogoPurple from "/skylabLogoPurple.svg";
 import skylabLogoWingSmall from "/skylabLogoWingSmall.svg";
 import skylabLogoWingLarge from "/skylabLogoWingLarge.svg";
+import { useNavigate } from "react-router-dom";
 
-// import { Card, CardContent } from "@mui/material";
+import { loginThunk, signupThunk } from "../store/authSlice";
+// import { setError, setLoading } from "../store/formsSlice";
+import { useAppDispatch, useAppSelector } from "../store/typedHooks";
 
-const AuthPage = () => {
-  const [isFlipped, setIsFlipped] = useState<boolean>(false);
-  const [imagePosition, setImagePosition] = useState<number>(0);
-  const sectionRef = useRef<HTMLDivElement | null>(null);
+export default function AuthPage() {
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isAnimate, setIsAnimate] = useState(false);
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const loginLoading = useAppSelector((state) => state.auth.loginLoading);
+  const loginError = useAppSelector((state) => state.auth.loginError);
+  const signupLoading = useAppSelector((state) => state.auth.signupLoading);
+  const signupError = useAppSelector((state) => state.auth.signupError);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    "success" | "error" | "warning" | "info"
+  >("success");
+
+  // const loading = useSelector((state: RootState) => state.forms.loading);
+  // const error = useSelector((state: RootState) => state.forms.error);
 
   useEffect(() => {
-    const storedCardState = localStorage.getItem("authCardSide");
+    const storedCardState = sessionStorage.getItem("authCardSide");
     if (storedCardState) {
       setIsFlipped(storedCardState === "front");
     }
   }, []);
 
+  useEffect(() => {
+    const token = sessionStorage.getItem("authToken");
+    if (token && isAuthenticated) {
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleFlip = () => {
+    setIsAnimate(true);
     setIsFlipped((prev) => !prev);
     const newState = !isFlipped ? "front" : "back";
-    localStorage.setItem("authCardSide", newState);
+    sessionStorage.setItem("authCardSide", newState);
   };
-  const handleLogin = (data: {
-    email: string;
-    password: string;
-    // remember: boolean;
-  }) => {
-    console.log("Login Data:", data);
-    // send a request to  authentication API
+
+  const handleAnimationEnd = () => {
+    setIsAnimate(false);
   };
-  const handleSignup = (data: {
+  const showSnackbar = (
+    message: string,
+    severity: "success" | "error" | "warning" | "info"
+  ) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
+  const handleSnackbarClose = (
+    _: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbarOpen(false);
+  };
+
+  const handleLogin = async (data: { email: string; password: string }) => {
+    try {
+      await dispatch(loginThunk(data)).unwrap();
+      showSnackbar("Login successful!", "success");
+      // setTimeout(() => {
+      //   navigate("/");
+      // }, 1500);
+    } catch (error) {
+      console.log("login error: ", loginError);
+      // const errorMessage =
+      //   typeof error === "string" ? error : "Login failed, please try again.";
+
+      // showSnackbar(errorMessage, "error");
+      console.error("Login failed:", error);
+      // setError("Invalid email or password");
+    }
+  };
+
+  const handleSignup = async (data: {
     email: string;
     password: string;
     confirmPassword: string;
-    // remember: boolean;
   }) => {
-    console.log("Signup Data:", data);
-    // send a request to your authentication API
+    try {
+      await dispatch(signupThunk(data)).unwrap();
+      // Login automatically after signup
+      await dispatch(
+        loginThunk({ email: data.email, password: data.password })
+      ).unwrap();
+      showSnackbar(signupError || "Signup successful!", "success");
+      // setTimeout(() => {
+      //   navigate("/");
+      // }, 1500);
+    } catch (error) {
+      console.error("Signup failed:", error);
+      // const errorMessage =
+      //   typeof error === "string" ? error : "Signup failed. Please try again.";
+      // showSnackbar(errorMessage, "error");
+    }
   };
+
+  // Add these useEffects to show error messages when state changes
   useEffect(() => {
-    const updateImagePosition = () => {
-      if (sectionRef.current) {
-        const height = sectionRef.current.clientHeight;
-        setImagePosition(height * 0.175);
-      }
-    };
+    if (loginError) {
+      showSnackbar(loginError, "error");
+    }
+  }, [loginError]);
 
-    updateImagePosition();
-    window.addEventListener("resize", updateImagePosition);
+  useEffect(() => {
+    if (signupError) {
+      showSnackbar(signupError, "error");
+    }
+  }, [signupError]);
 
-    return () => {
-      window.removeEventListener("resize", updateImagePosition);
-    };
-  }, [sectionRef]);
-
-  //   const sectionHeight = sectionRef.current ? sectionRef.current.clientHeight : 0;
-  //   const imagePosition = sectionHeight * 0.16;
   return (
-    <ThemeProvider theme={Theme}>
-      <div className="w-full h-screen flex justify-center items-center overflow-hidden preserve-3d">
-        {/* <Card className="w-1/2 h-full"> */}
-        {/* <CardContent
-          className={`card ${
-            isFlipped && "flipped"
-          } w-full border border-solid border-purple rounded-xl shadow-2xl
-               bg-black`}
-        > */}
-        {/* <div
-              className={`transform transition-transform duration-500 preserve-3d ${
-                isFlipped ? "flipped" : ""
-              }`}
-            > */}
-        {/* <div className="front"> */}
-        <section
-          ref={sectionRef}
-          className={`card bg-black border z-20 border-purple flex justify-center items-center rounded-xl max-w-1/2 max-h-[80%]  ${
-            isFlipped
-              ? "flipped lg:w-[40%] lg:h-[75%] md:w-[50%] md:h-1/2"
-              : "lg:w-[35%] lg:h-[60%] md:w-[45%] md:h-[55%] sm:w-[55%] w-3/4 h-[55%]"
-          }
-         `}
+    <div className="w-full h-screen flex justify-center items-center">
+      <Snackbar
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        open={snackbarOpen}
+        autoHideDuration={5000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
         >
-          {/* <div className="-z-20 absolute inset-x-0 top-[-8%] w-full  h-1/3"> */}
-          <img
-            src={skylabLogoPurple}
-            alt="skylab logo"
-            // className={`absolute inset-x-0 top-[-${imagePosition}px] -z-20 w-auto mx-auto`}
-            className="absolute inset-x-0 mx-auto -z-20 w-auto"
-            style={{ top: `-${imagePosition}px` }}
-          />
-          <img
-            src={skylabLogoWingSmall}
-            alt="skylab logo"
-            className="absolute -top-10 -left-10 -z-20 w-auto mx-auto "
-          />
-          <img
-            src={skylabLogoWingSmall}
-            alt="skylab logo"
-            className="absolute -top-10 -right-10 -z-20 w-auto mx-auto rotate-90"
-          />
-          <img
-            src={skylabLogoWingSmall}
-            alt="skylab logo"
-            className="absolute -bottom-10 -right-10 -z-20 w-auto mx-auto rotate-180"
-          />
-          <img
-            src={skylabLogoWingSmall}
-            alt="skylab logo"
-            className="absolute -bottom-10 -left-10 -z-20 w-auto mx-auto -rotate-90"
-          />
-          <img
-            src={skylabLogoWingLarge}
-            alt="skylab logo"
-            className="absolute -left-24 top-1/2 transform -translate-y-1/2 -z-20 w-auto mx-auto"
-          />
-          <img
-            src={skylabLogoWingLarge}
-            alt="skylab logo"
-            className="absolute -right-24 top-1/2 transform -translate-y-1/2 -z-20 w-auto mx-auto rotate-180"
-          />
-          {/* </div> */}
-          <Login
-            onFlip={handleFlip}
-            onSubmit={handleLogin}
-            // side="front"
-            // side={isFlipped ? "back" : "front"}
-          />
-          {/* </div> */}
-          {/* <div className="back"> */}
-          <Signup
-            onFlip={handleFlip}
-            onSubmit={handleSignup}
-            // side="back"
-            // side={isFlipped ? "front" : "back"}
-          />
-        </section>
-        {/* </div> */}
-        {/* </div> */}
-        {/* </CardContent> */}
-        {/* </Card> */}
-      </div>
-    </ThemeProvider>
-  );
-};
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
 
-export default AuthPage;
+      <div className="flip-card relative w-[80%] sm:w-[70%] md:w-[60%] lg:w-1/2 xl:w-[40%] h-[60%] sm:h-[65%] lg:h-[70%]">
+        {/* <div className="bg-black w-full h-full border border-solid border-red-500"> */}
+        <div
+          className={`${
+            isFlipped ? "flipped" : "not-flipped"
+          } back-side absolute w-full h-full flex flex-col gap-2 justify-center items-center shadow-2xl rounded-2xl  bg-black`}
+        >
+          <Signup onSubmit={handleSignup} signupLoading={signupLoading} />
+
+          <Typography color="secondary.main">
+            Already have an account?{" "}
+            <Link
+              onClick={handleFlip}
+              color="primary"
+              className="hover:cursor-pointer"
+            >
+              Log In
+            </Link>
+          </Typography>
+        </div>
+        <div
+          className={`${
+            isFlipped ? "flipped" : "not-flipped"
+          } front-side absolute w-full h-full flex flex-col gap-2 justify-center items-center shadow-2xl rounded-2xl bg-black`}
+        >
+          <Login onSubmit={handleLogin} loginLoading={loginLoading} />
+          <Typography
+            color="secondary.main"
+            sx={{
+              fontSize: "0.8rem",
+              lineHeight: "1.75rem",
+              "@media (min-width:768px)": {
+                fontSize: "1rem",
+                lineHeight: "1.75rem",
+              },
+              "@media (min-width:1024px)": {
+                fontSize: "1.1rem",
+                lineHeight: "1.75rem",
+              },
+            }}
+          >
+            Don't have an account?{" "}
+            <Link
+              onClick={handleFlip}
+              color="primary"
+              className="hover:cursor-pointer"
+            >
+              Signup
+            </Link>
+          </Typography>
+        </div>
+        <img
+          src={skylabLogoPurple}
+          alt="skylab logo"
+          // className={`absolute inset-x-0 top-[-${imagePosition}px] -z-20 w-auto mx-auto`}
+          className={`${
+            isAnimate && "skylabLogoPurpleAnimation"
+          } transition-transform absolute -top-[78px] md:-top-[80px] inset-x-0 mx-auto -z-20 w-auto scale-75 md:scale-90`}
+          onAnimationEnd={handleAnimationEnd}
+          // style={{ top: `-${imagePosition}px` }}
+        />
+        <img
+          src={skylabLogoWingSmall}
+          alt="skylab logo"
+          className={`${
+            isAnimate && "skylabWingSmallTopLeftAnimation"
+          } absolute -top-8 md:-top-9 md:-left-9 -left-8 -z-20 w-auto mx-auto scale-75 md:scale-100`}
+          onAnimationEnd={handleAnimationEnd}
+        />
+        <img
+          src={skylabLogoWingSmall}
+          alt="skylab logo"
+          className={`${
+            isAnimate && "skylabWingSmallTopRightAnimation"
+          } absolute -top-8 md:-top-9 md:-right-9 -right-8 -z-20 w-auto mx-auto rotate-90 scale-75 md:scale-100`}
+          onAnimationEnd={handleAnimationEnd}
+        />
+        <img
+          src={skylabLogoWingSmall}
+          alt="skylab logo"
+          className={`${
+            isAnimate && "skylabWingSmallBottomRightAnimation"
+          } absolute -bottom-8 md:-bottom-9 md:-right-9 -right-8 -z-20 w-auto mx-auto rotate-180 scale-75 md:scale-100`}
+          onAnimationEnd={handleAnimationEnd}
+        />
+        <img
+          src={skylabLogoWingSmall}
+          alt="skylab logo"
+          className={`${
+            isAnimate && "skylabWingSmallBottomLeftAnimation"
+          } absolute -bottom-8 md:-bottom-9 md:-left-9 -left-8 -z-20 w-auto mx-auto -rotate-90 scale-75 md:scale-100`}
+          onAnimationEnd={handleAnimationEnd}
+        />
+        <img
+          src={skylabLogoWingLarge}
+          alt="skylab logo"
+          className={`${
+            isAnimate && "skylabLargeWingLeftAnimation"
+          } absolute -left-16 sm:-left-[72px] transform top-1/2 -translate-y-1/2 -z-20 w-auto mx-auto scale-50 sm:scale-75`}
+          onAnimationEnd={handleAnimationEnd}
+        />
+        <img
+          src={skylabLogoWingLarge}
+          alt="skylab logo"
+          className={`${
+            isAnimate && "skylabLargeWingRightAnimation"
+          } absolute -right-16 sm:-right-[72px] top-1/2 transform -translate-y-1/2 -z-20 w-auto mx-auto rotate-180 scale-50 sm:scale-75`}
+          onAnimationEnd={handleAnimationEnd}
+        />
+      </div>
+
+      {/* </div> */}
+    </div>
+  );
+}

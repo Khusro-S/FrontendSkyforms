@@ -19,7 +19,8 @@ import Visibility from "@mui/icons-material/Visibility";
 
 interface LoginProps {
   onSubmit: (data: LoginData) => void;
-  onFlip: () => void;
+  loginLoading: boolean;
+  // onFlip: () => void;
 }
 
 interface LoginData {
@@ -28,7 +29,7 @@ interface LoginData {
   //   remember: boolean;
 }
 
-const Login = ({ onFlip, onSubmit }: LoginProps) => {
+const Login = ({ onSubmit, loginLoading }: LoginProps) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   //   const [remember, setRemember] = useState<boolean>(false);
@@ -101,12 +102,7 @@ const Login = ({ onFlip, onSubmit }: LoginProps) => {
   };
 
   return (
-    <div className="front bg-black rounded-xl flex flex-col items-center justify-center gap-y-3 px-5">
-      {/* <img
-        src={skylabLogoPurple}
-        alt="skylab logo"
-        className="absolute inset-x-0 -top-[16.5%] -z-20 w-auto max-w-[80%] mx-auto"
-      /> */}
+    <div className="front flex flex-col items-center justify-center gap-y-3 px-5">
       <div className="flex flex-col justify-center items-center gap-0">
         <Typography variant="h1" component="h1" className="text-center">
           Welcome to Sky Forms
@@ -119,12 +115,7 @@ const Login = ({ onFlip, onSubmit }: LoginProps) => {
           Login
         </Typography>
       </div>
-      <FormControl
-        fullWidth
-        error={Boolean(errors.email)}
-        // className="mb-4"
-        variant="standard"
-      >
+      <FormControl fullWidth error={Boolean(errors.email)} variant="standard">
         <InputLabel htmlFor="loginEmail" sx={{ fontSize: "1.5rem" }}>
           Email Address
         </InputLabel>
@@ -133,11 +124,6 @@ const Login = ({ onFlip, onSubmit }: LoginProps) => {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          //   sx={{
-          //     fontSize: "1.5rem",
-          //   }}
-
-          //   className="mt-2"
         />
         {errors.email && (
           <FormHelperText sx={{ fontSize: "1rem" }}>
@@ -149,7 +135,6 @@ const Login = ({ onFlip, onSubmit }: LoginProps) => {
       <FormControl
         fullWidth
         error={Boolean(errors.password)}
-        // className="mb-4"
         variant="standard"
       >
         <InputLabel htmlFor="loginPassword" sx={{ fontSize: "1.5rem" }}>
@@ -160,8 +145,6 @@ const Login = ({ onFlip, onSubmit }: LoginProps) => {
           type={showPassword ? "text" : "password"}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          //   sx={{ fontSize: "1.5rem" }}
-          //   className="mt-2"
           endAdornment={
             <InputAdornment position="end">
               <IconButton
@@ -223,12 +206,13 @@ const Login = ({ onFlip, onSubmit }: LoginProps) => {
       <Button
         variant="contained"
         color="primary"
+        disabled={loginLoading}
         // fullWidth
         onClick={handleSubmit}
       >
-        Login
+        {loginLoading ? "Logging in..." : "Login"}
       </Button>
-      <Typography
+      {/* <Typography
         color="secondary.main"
         sx={{
           fontSize: "0.8rem",
@@ -247,7 +231,7 @@ const Login = ({ onFlip, onSubmit }: LoginProps) => {
         <Link onClick={onFlip} color="primary" className="hover:cursor-pointer">
           Log In
         </Link>
-      </Typography>
+      </Typography> */}
     </div>
   );
 };

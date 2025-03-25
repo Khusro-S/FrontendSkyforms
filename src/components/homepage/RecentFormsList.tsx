@@ -3,8 +3,8 @@ import RecentForm from "./RecentForm";
 import { Link } from "react-router-dom";
 import {
   deleteFormThunk,
+  fetchUserForms,
   formsActions,
-  getForms,
   updateFormTitleThunk,
   updateLastOpenedThunk,
 } from "../../store/formsSlice";
@@ -58,9 +58,24 @@ export default function RecentFormsList() {
   const [renameFormId, setRenameFormId] = useState<string | null>(null);
   const [renameInput, setRenameInput] = useState<string>("");
 
+  // const userId = useSelector((state: RootState) => state.auth.currentUser?.id);
+  const { isAuthenticated, currentUser } = useSelector(
+    (state: RootState) => state.auth
+  );
   useEffect(() => {
-    dispatch(getForms());
-  }, [dispatch]);
+    if (isAuthenticated && currentUser) {
+      dispatch(fetchUserForms(currentUser.id));
+    }
+  }, [dispatch, isAuthenticated, currentUser]);
+  // useEffect(() => {
+  //   if (userId) {
+  //     dispatch(fetchUserForms(userId)); // Fetch user-specific forms
+  //   }
+  // }, [dispatch, userId]);
+
+  // useEffect(() => {
+  //   dispatch(getForms());
+  // }, [dispatch]);
 
   // Filter forms based on search query
   const filteredForms = useMemo(() => {

@@ -1,4 +1,4 @@
-  .card {
+  /* .card {
     position: relative;
     width: 100%;
     height: 100%;
@@ -22,5 +22,324 @@
   
   .back {
     transform: rotateY(180deg);
-  }
+  } */
   
+
+/* .flip-card {
+  perspective: 1000px;
+  transition: all 0.6s;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden; 
+  backface-visibility: hidden;
+  overflow: auto;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+} */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+ .flip-card{
+  perspective: 3200px;
+
+  }
+
+.front-side, .back-side{
+   transition: transform 1s cubic-bezier(0.3, 0, 0.4, 1);
+  transform-style: preserve-3d;
+  -webkit-backface-visibility: hidden; 
+  backface-visibility: hidden;
+}
+
+.front-side.not-flipped{
+  transform: rotateY(0deg) ;
+}
+.back-side.not-flipped{
+  transform: rotateY(180deg) ;
+}
+.front-side.flipped{
+    transform: rotateY(180deg);
+
+}
+.back-side.flipped{
+    transform: rotateY(0deg);
+
+}
+
+@layer utilities {
+  .skylabLogoPurpleAnimation {
+    animation: skylabLogoPurpleAnimation 1s cubic-bezier(0.3, 0, 0.4, 1) forwards;
+    transform-style: preserve-3d;
+  }
+
+
+
+  /* Center logo animation */
+  @keyframes skylabLogoPurpleAnimation {
+        0% {
+      transform: scale(0.75) rotateY(0deg);
+    }
+    50% {
+      transform: translate3d(0, -40% ,0) scale(0.825) rotateY(-90deg); 
+    }
+    100% {
+      transform: scale(0.75) rotateY(-180deg);
+    }
+  }
+
+  @media (min-width: 768px) { 
+    @keyframes skylabLogoPurpleAnimation {
+      0% {
+        transform: scale(0.9) rotateY(0deg);
+      }
+      50% {
+        transform: translate3d(0, -40%, 0) scale(0.99) rotateY(-90deg);
+      }
+      100% {
+        transform: scale(0.9) rotateY(-180deg); 
+      }
+    }
+  }
+/* Small Wing animation top left */
+   .skylabWingSmallTopLeftAnimation {
+    animation: skylabWingSmallTopLeftAnimation 1s cubic-bezier(0.3, 0, 0.4, 1) forwards;
+    transform-style: preserve-3d;
+  }
+
+  @keyframes skylabWingSmallTopLeftAnimation {
+    0% {
+      transform:  scale(0.75) ;
+      /* transform-origin: bottom center; */
+    }
+    50% {
+      transform: translate3d(-40%, -40%,0) scale(0.825) ;
+      /* transform-origin: bottom center; */
+    }
+    100% {
+      transform:  scale(0.75) ;
+      /* transform-origin: bottom center; */
+    }
+  }
+
+  @media (min-width: 768px) {
+    @keyframes skylabWingSmallTopLeftAnimation {
+      0% {
+        transform:  scale(1) ;
+        /* transform-origin: bottom center; */
+      }
+      50% {
+        transform: translate3d(-40%, -40%,0) scale(1.1);
+        /* transform-origin: bottom center; */
+      }
+      100% {
+        transform:  scale(1);
+        /* transform-origin: bottom center; */
+      }
+    }
+  }
+
+/* Small Wing animation top right */
+   .skylabWingSmallTopRightAnimation {
+    animation: skylabWingSmallTopRightAnimation 1s cubic-bezier(0.3, 0, 0.4, 1) forwards;
+    transform-style: preserve-3d;
+  }
+
+  @keyframes skylabWingSmallTopRightAnimation {
+    0% {
+      transform:  scale(0.75) rotate(90deg);
+      /* transform-origin: bottom center; */
+    }
+    50% {
+      transform: translate3d(40%, -40%,0) scale(0.825) rotate(90deg);
+      /* transform-origin: bottom center; */
+    }
+    100% {
+      transform:  scale(0.75) rotate(90deg);
+      /* transform-origin: bottom center; */
+    }
+  }
+
+  @media (min-width: 768px) {
+    @keyframes skylabWingSmallTopRightAnimation {
+      0% {
+        transform:  scale(1) rotate(90deg);
+        /* transform-origin: bottom center; */
+      }
+      50% {
+        transform: translate3d(40%, -40%,0) scale(1.1) rotate(90deg);
+        /* transform-origin: bottom center; */
+      }
+      100% {
+        transform:  scale(1) rotate(90deg);
+        /* transform-origin: bottom center; */
+      }
+    }
+  }
+
+/* Small Wing animation bottom left */
+   .skylabWingSmallBottomLeftAnimation {
+    animation: skylabWingSmallBottomLeftAnimation 1s cubic-bezier(0.3, 0, 0.4, 1) forwards;
+    transform-style: preserve-3d;
+  }
+
+  @keyframes skylabWingSmallBottomLeftAnimation {
+    0% {
+      transform:  scale(0.75) rotate(-90deg);
+      /* transform-origin: bottom center; */
+    }
+    50% {
+      transform: translate3d(-40%, 40%,0) scale(0.825) rotate(-90deg);
+      /* transform-origin: bottom center; */
+    }
+    100% {
+      transform:  scale(0.75) rotate(-90deg);
+      /* transform-origin: bottom center; */
+    }
+  }
+
+  @media (min-width: 768px) {
+    @keyframes skylabWingSmallBottomLeftAnimation {
+      0% {
+        transform:  scale(1) rotate(-90deg);
+        /* transform-origin: bottom center; */
+      }
+      50% {
+        transform: translate3d(-40%, 40%,0) scale(1.1) rotate(-90deg);
+        /* transform-origin: bottom center; */
+      }
+      100% {
+        transform:  scale(1) rotate(-90deg);
+        /* transform-origin: bottom center; */
+      }
+    }
+  }
+
+
+ /* Small Wing animation bottom left */
+   .skylabWingSmallBottomRightAnimation {
+    animation: skylabWingSmallBottomRightAnimation 1s cubic-bezier(0.3, 0, 0.4, 1) forwards;
+    transform-style: preserve-3d;
+  }
+
+  @keyframes skylabWingSmallBottomRightAnimation {
+    0% {
+      transform:  scale(0.75) rotate(180deg);
+      /* transform-origin: bottom center; */
+    }
+    50% {
+      transform: translate3d(40%, 40%, 0) scale(0.825) rotate(180deg);
+      /* transform-origin: bottom center; */
+    }
+    100% {
+      transform:  scale(0.75) rotate(180deg);
+      /* transform-origin: bottom center; */
+    }
+  }
+
+  @media (min-width: 768px) {
+    @keyframes skylabWingSmallBottomRightAnimation {
+      0% {
+        transform:  scale(1) rotate(180deg);
+        /* transform-origin: bottom center; */
+      }
+      50% {
+        transform: translate3d(40%, 40%, 0) scale(1.1) rotate(180deg);
+        /* transform-origin: bottom center; */
+      }
+      100% {
+        transform:  scale(1) rotate(180deg);
+        /* transform-origin: bottom center; */
+      }
+    }
+  } 
+
+  /* Large wing left animation */
+  .skylabLargeWingLeftAnimation {
+    animation: skylabLargeWingLeftAnimation 1s cubic-bezier(0.3, 0, 0.4, 1) forwards;
+    transform-style: preserve-3d;
+    top: 50%;
+    translate: 0% -50%;
+  }
+
+  @keyframes skylabLargeWingLeftAnimation {
+    0% {
+      transform: scale(0.5) ;
+    }
+    50% {
+      transform: translate3d(-40%,0,0) scale(0.55) ;
+    }
+    100% {
+      transform:  scale(0.5) ;
+    }
+  }
+
+  @media (min-width: 640px) { /* sm breakpoint */
+    @keyframes skylabLargeWingLeftAnimation {
+      0% {
+        transform: scale(0.75) ;
+      }
+      50% {
+        transform: translate3d(-40%,0,0)  scale(0.825) ;
+      }
+      100% {
+        transform: scale(0.75) ;
+      }
+    }
+  }
+
+  /* Large wing right animation */
+  .skylabLargeWingRightAnimation {
+    animation: skylabLargeWingRightAnimation 1s cubic-bezier(0.3, 0, 0.4, 1) forwards;
+    transform-style: preserve-3d;
+    top: 50%;
+    translate: 0% -50%;
+    rotate: 180deg;
+  }
+
+  @keyframes skylabLargeWingRightAnimation {
+    0% {
+      transform: scale(0.5) ;
+    }
+    50% {
+      transform: translate3d(-40%, 0, 0) scale(0.55) ;
+    }
+    100% {
+      transform:  scale(0.5) ;
+    }
+  }
+
+  @media (min-width: 640px) { /* sm breakpoint */
+    @keyframes skylabLargeWingRightAnimation {
+      0% {
+        transform: scale(0.75) ;
+      }
+      50% {
+        transform: translate3d(-40%, 0, 0)  scale(0.825) ;
+      }
+      100% {
+        transform: scale(0.75) ;
+      }
+    }
+  }
+}

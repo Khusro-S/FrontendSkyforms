@@ -32,10 +32,15 @@ export interface Question {
   open: boolean;
   required: boolean;
 }
-
+export interface User {
+  id: string;
+  email: string;
+  token: string;
+}
 export interface Form {
   // formId: string;
   id: string;
+  userId: string;
   formTitle: string;
   formDescription: string;
   questions: Question[];
@@ -53,6 +58,7 @@ export type AnswerValue =
 
 export interface FormResponse {
   id: string;
+  userId: string;
   formId: string;
   answers: {
     questionId: string;

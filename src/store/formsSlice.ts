@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   FileData,
   Form,
-  FormResponse,
+  // FormResponse,
   Question,
   QuestionType,
 } from "../types/types";
@@ -10,14 +10,16 @@ import {
   createFormAPI,
   deleteFormAPI,
   deleteFormResponsesAPI,
-  fetchAllForms,
+  // fetchAllForms,
   fetchFormByIdAPI,
-  fetchFormResponsesAPI,
-  submitFormResponseAPI,
+  // fetchFormResponsesAPI,
+  fetchUserFormsAPI,
+  // submitFormResponseAPI,
   updateFormAPI,
   updateFormLastOpenedAPI,
   updateFormTitleAPI,
 } from "../api/api";
+import { RootState } from "./rootReducer";
 
 interface FormsState {
   forms: Form[];
@@ -28,6 +30,9 @@ interface FormsState {
   sortBy: string;
   formsPerPage: number;
   currentPage: number;
+  // isAuthenticated: boolean; // Add authentication status
+  // token: string | null; // Add token storage
+  // currentUserId: string | null;
 }
 
 export const initialStateForms: FormsState = {
@@ -39,18 +44,69 @@ export const initialStateForms: FormsState = {
   sortBy: "lastOpened",
   formsPerPage: 8,
   currentPage: 1,
+  // isAuthenticated: false,
+  // token: null,
+  // currentUserId: null,
 };
-export const getForms = createAsyncThunk("forms/getAllForms", async () => {
-  const response = await fetchAllForms();
-  const data = await response;
-  return data as Form[];
-});
 
+// export const getForms = createAsyncThunk("forms/getAllForms", async () => {
+//   const response = await fetchAllForms();
+//   const data = await response;
+//   return data as Form[];
+// });
+
+// export const createFormThunk = createAsyncThunk<Form, Form>(
+//   "forms/createForm",
+//   async (formData: Form) => {
+//     const response = await createFormAPI(formData);
+//     return response;
+//   }
+// );
+export const fetchUserForms = createAsyncThunk<Form[], string>(
+  "forms/fetchUserForms",
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      const forms = await fetchUserFormsAPI(userId);
+      return forms;
+      // return forms.filter((form) => form.userId == userId);
+    } catch (error) {
+      // return rejectWithValue(error.message);
+      console.log("Error object: ", error);
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      } else {
+        return rejectWithValue("User not found.");
+      }
+    }
+  }
+);
 export const createFormThunk = createAsyncThunk<Form, Form>(
   "forms/createForm",
-  async (formData: Form) => {
-    const response = await createFormAPI(formData);
-    return response;
+  async (formData: Form, { getState, rejectWithValue }) => {
+    const state = getState() as RootState;
+    const userId = state.auth.currentUser?.id;
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    const formWithUserId = {
+      ...formData,
+      userId,
+    };
+    try {
+      const response = await createFormAPI(formWithUserId);
+      return response;
+    } catch (error) {
+      console.log("Error object: ", error);
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      } else {
+        return rejectWithValue("Failed to create form.");
+      }
+    }
+
+    // const response = await createFormAPI(formWithUserId);
+    // return response;
   }
 );
 
@@ -102,29 +158,29 @@ export const updateFormThunk = createAsyncThunk(
   }
 );
 
-export const submitFormResponseThunk = createAsyncThunk(
-  "responses/submitFormResponse",
-  async (response: Omit<FormResponse, "submittedAt">, { rejectWithValue }) => {
-    try {
-      const result = await submitFormResponseAPI(response);
-      return result;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
-  }
-);
+// export const submitFormResponseThunk = createAsyncThunk(
+//   "responses/submitFormResponse",
+//   async (response: Omit<FormResponse, "submittedAt">, { rejectWithValue }) => {
+//     try {
+//       const result = await submitFormResponseAPI(response);
+//       return result;
+//     } catch (error) {
+//       return rejectWithValue(error);
+//     }
+//   }
+// );
 
-export const fetchFormResponsesThunk = createAsyncThunk(
-  "responses/fetchFormResponses",
-  async (formId: string, { rejectWithValue }) => {
-    try {
-      const responses = await fetchFormResponsesAPI(formId);
-      return responses;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
-  }
-);
+// export const fetchFormResponsesThunk = createAsyncThunk(
+//   "responses/fetchFormResponses",
+//   async (formId: string, { rejectWithValue }) => {
+//     try {
+//       const responses = await fetchFormResponsesAPI(formId);
+//       return responses;
+//     } catch (error) {
+//       return rejectWithValue(error);
+//     }
+//   }
+// );
 
 export const deleteFormResponsesThunk = createAsyncThunk(
   "responses/deleteFormResponses",
@@ -431,6 +487,7 @@ const formsSlice = createSlice({
     createNewForm: (state, action: PayloadAction<string>) => {
       const newForm: Form = {
         id: action.payload,
+        userId: crypto.randomUUID(),
         formTitle: "Untitled Form",
         formDescription: "Untitled Description",
         questions: [
@@ -708,15 +765,15 @@ const formsSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      .addCase(getForms.pending, (state) => {
+      .addCase(fetchUserForms.pending, (state) => {
         state.loading = true;
       })
-      .addCase(getForms.fulfilled, (state, action) => {
+      .addCase(fetchUserForms.fulfilled, (state, action) => {
         state.forms = sortForms(action.payload, state.sortBy);
         state.loading = false;
         state.error = null;
       })
-      .addCase(getForms.rejected, (state, action) => {
+      .addCase(fetchUserForms.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to fetch forms";
         console.log("Error: ", action.error);

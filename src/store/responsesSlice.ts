@@ -6,12 +6,57 @@ import {
   fetchFormResponsesAPI,
   submitFormResponseAPI,
 } from "../api/api";
+import { RootState } from "./rootReducer";
+
+// export const submitFormResponseThunk = createAsyncThunk(
+//   "responses/submitFormResponse",
+//   async (response: Omit<FormResponse, "submittedAt">, { rejectWithValue }) => {
+//     try {
+//       const result = await submitFormResponseAPI(response);
+//       return result;
+//     } catch (error) {
+//       return rejectWithValue(error);
+//     }
+//   }
+// );
+
+// export const fetchFormResponsesThunk = createAsyncThunk(
+//   "responses/fetchFormResponses",
+//   async (formId: string, { rejectWithValue }) => {
+//     try {
+//       const responses = await fetchFormResponsesAPI(formId);
+//       return responses;
+//     } catch (error) {
+//       return rejectWithValue(error);
+//     }
+//   }
+// );
+
+// export const deleteFormResponsesThunk = createAsyncThunk(
+//   "responses/deleteFormResponses",
+//   async (formId: string, { rejectWithValue }) => {
+//     try {
+//       await deleteFormResponsesAPI(formId);
+//       return formId; // Return the formId for reducer logic
+//     } catch (error) {
+//       return rejectWithValue(error);
+//     }
+//   }
+// );
 
 export const submitFormResponseThunk = createAsyncThunk(
   "responses/submitFormResponse",
-  async (response: Omit<FormResponse, "submittedAt">, { rejectWithValue }) => {
+  async (
+    response: Omit<FormResponse, "submittedAt">,
+    { rejectWithValue, getState }
+  ) => {
     try {
-      const result = await submitFormResponseAPI(response);
+      const state = getState() as RootState;
+      const userId = state.auth.currentUser?.id;
+      if (!userId) {
+        return rejectWithValue("User not authenticated");
+      }
+      const result = await submitFormResponseAPI({ ...response, userId });
       return result;
     } catch (error) {
       return rejectWithValue(error);
@@ -21,9 +66,17 @@ export const submitFormResponseThunk = createAsyncThunk(
 
 export const fetchFormResponsesThunk = createAsyncThunk(
   "responses/fetchFormResponses",
-  async (formId: string, { rejectWithValue }) => {
+  async (formId: string, { rejectWithValue, getState }) => {
     try {
-      const responses = await fetchFormResponsesAPI(formId);
+      const state = getState() as RootState;
+      const userId = state.auth.currentUser?.id;
+      if (!userId) {
+        return rejectWithValue("User not authenticated");
+      }
+
+      // Modify the API call to filter responses by userId as well
+      const responses = await fetchFormResponsesAPI(formId, userId);
+      // return responses.filter((response) => response.userId === userId);
       return responses;
     } catch (error) {
       return rejectWithValue(error);
@@ -33,15 +86,23 @@ export const fetchFormResponsesThunk = createAsyncThunk(
 
 export const deleteFormResponsesThunk = createAsyncThunk(
   "responses/deleteFormResponses",
-  async (formId: string, { rejectWithValue }) => {
+  async (formId: string, { rejectWithValue, getState }) => {
     try {
+      const state = getState() as RootState;
+      const userId = state.auth.currentUser?.id;
+      if (!userId) {
+        return rejectWithValue("User not authenticated");
+      }
+
+      // Modify the API call to delete responses by userId as well if needed.
       await deleteFormResponsesAPI(formId);
-      return formId; // Return the formId for reducer logic
+      return formId;
     } catch (error) {
       return rejectWithValue(error);
     }
   }
 );
+
 
 interface ResponsesState {
   responses: FormResponse[];

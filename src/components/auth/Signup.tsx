@@ -8,23 +8,24 @@ import {
   InputAdornment,
   IconButton,
   FormHelperText,
-  Link,
+  // Link,
 } from "@mui/material";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Visibility from "@mui/icons-material/Visibility";
 
 interface SignupProps {
   onSubmit: (data: SignupData) => void;
-  onFlip: () => void;
+  signupLoading: boolean;
+  // onFlip: () => void;
 }
 
-interface SignupData {
+export interface SignupData {
   email: string;
   password: string;
   confirmPassword: string;
 }
 
-const Signup = ({ onFlip, onSubmit }: SignupProps) => {
+const Signup = ({ onSubmit, signupLoading }: SignupProps) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -124,13 +125,13 @@ const Signup = ({ onFlip, onSubmit }: SignupProps) => {
   };
 
   return (
-    <div className="back bg-black rounded-xl flex flex-col items-center justify-center gap-5 px-5">
+    <div className="back flex flex-col items-center justify-center gap-5 px-5">
       {/* <img
         src={skylabLogoPurple}
         alt="skylab logo"
         className="absolute inset-x-0 -top-[13%] -z-20 w-auto max-w-[80%] mx-auto"
       /> */}
-      <Typography variant="h2" component="h2">
+      <Typography variant="h1" component="h2">
         Welcome to Sky Forms
       </Typography>
       <Typography variant="h4" component="h4">
@@ -232,19 +233,20 @@ const Signup = ({ onFlip, onSubmit }: SignupProps) => {
       <Button
         variant="contained"
         color="primary"
+        disabled={signupLoading}
         // fullWidth
         onClick={handleSubmit}
         sx={{ fontSize: "1.5rem", padding: "0 15px", borderRadius: "0.75rem" }}
       >
-        Sign Up
+        {signupLoading ? "Creating account..." : "Sign Up"}
       </Button>
-
+      {/* 
       <Typography color="secondary.main">
         Already have an account?{" "}
         <Link onClick={onFlip} color="primary" className="hover:cursor-pointer">
           Log In
         </Link>
-      </Typography>
+      </Typography> */}
     </div>
   );
 };

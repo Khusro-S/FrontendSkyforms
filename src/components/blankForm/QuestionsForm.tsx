@@ -12,6 +12,7 @@ import {
 } from "../../store/formsSlice";
 import { AppDispatch } from "../../store/Store";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 // import selectQuestionsByFormId from "../SelectedQuestionsByFormId";
 // import { useEffect } from "react";
 // import axios from "axios";
@@ -22,6 +23,9 @@ export default function QuestionsForm() {
   const navigate = useNavigate();
 
   const { error, loading } = useSelector((state: RootState) => state.forms);
+  const { isAuthenticated, currentUser } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   const currentFormId = useSelector(
     (state: RootState) => state.forms.currentFormId
@@ -34,9 +38,23 @@ export default function QuestionsForm() {
   const formTitle = currentForm?.formTitle || "";
   const formDescription = currentForm?.formDescription || "";
 
+  // Check authentication status when component mounts
+  useEffect(() => {
+    if (!isAuthenticated) {
+      // Redirect to login if not authenticated
+      // navigate("/auth", { state: { returnTo: window.location.pathname } });
+      navigate("/auth");
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleSubmitForm = async () => {
     if (!currentForm) {
       alert("No form data found.");
+      return;
+    }
+    if (!currentUser) {
+      alert("You must be logged in to save forms.");
+      navigate("/login");
       return;
     }
     const { id, formTitle, formDescription, questions } = currentForm;
@@ -55,6 +73,7 @@ export default function QuestionsForm() {
       questions,
       lastOpened: new Date().toISOString(),
       newForm: false,
+      userId: currentUser.id,
     };
 
     try {
@@ -137,7 +156,9 @@ export default function QuestionsForm() {
   //     }
   //     FetchData()
   // },[dispatch, formId])
-
+  if (!isAuthenticated) {
+    return null;
+  }
   return (
     <div className="questionform h-full pb-4 flex flex-col justify-center items-center px-5">
       <div className="section md:w-[800px] w-full space-y-5">
