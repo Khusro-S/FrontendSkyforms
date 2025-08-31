@@ -75,7 +75,7 @@ export const fetchFormResponsesThunk = createAsyncThunk(
       }
 
       // Modify the API call to filter responses by userId as well
-      const responses = await fetchFormResponsesAPI(formId, userId);
+      const responses = await fetchFormResponsesAPI(formId);
       // return responses.filter((response) => response.userId === userId);
       return responses;
     } catch (error) {

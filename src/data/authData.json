@@ -1,0 +1,40 @@
+{
+  "users": [
+    {
+      "id": "bdb1",
+      "email": "test@example.com",
+      "password": "password123",
+      "token": "mockToken123"
+    },
+    {
+      "id": "4779",
+      "email": "testing1@example.com",
+      "password": "helloworld",
+      "token": "48rm2gbkpl1"
+    },
+    {
+      "id": "8f3c",
+      "email": "jhondoe@example.com",
+      "password": "password1122",
+      "token": "aa60613w5ni"
+    },
+    {
+      "id": "92f2",
+      "email": "steevejobs@example.com",
+      "password": "password",
+      "token": "1q9yi5d2yi1"
+    },
+    {
+      "id": "4ed9",
+      "email": "mark@example.com",
+      "password": "passwrod",
+      "token": "rl7mt7pyjhs"
+    },
+    {
+      "id": "2541",
+      "email": "newtest@example.com",
+      "password": "testing",
+      "token": "mop9gzd5in8"
+    }
+  ]
+}

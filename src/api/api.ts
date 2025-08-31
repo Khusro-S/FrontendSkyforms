@@ -318,7 +318,7 @@ export const validateTokenAPI = async (): Promise<{
   user: User;
 }> => {
   try {
-    const token = sessionStorage.getItem("authToken");
+    const token = localStorage.getItem("authToken");
     if (!token) {
       throw new Error("No token found");
     }

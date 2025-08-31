@@ -7,12 +7,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/rootReducer";
 import {
   createFormThunk,
+  fetchFormByIdThunk,
   formsActions,
   updateFormThunk,
 } from "../../store/formsSlice";
 import { AppDispatch } from "../../store/Store";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Form } from "../../types/types";
 // import selectQuestionsByFormId from "../SelectedQuestionsByFormId";
 // import { useEffect } from "react";
 // import axios from "axios";
@@ -21,19 +23,40 @@ import { useEffect } from "react";
 export default function QuestionsForm() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const { id: currentFormId } = useParams<{ id: string }>();
 
-  const { error, loading } = useSelector((state: RootState) => state.forms);
+  const [loading, setLoading] = useState(true);
+  const [localForm, setLocalForm] = useState<Form | null>(null);
+
+  const { error } = useSelector((state: RootState) => state.forms);
   const { isAuthenticated, currentUser } = useSelector(
     (state: RootState) => state.auth
   );
 
-  const currentFormId = useSelector(
-    (state: RootState) => state.forms.currentFormId
-  );
-  const currentForm = useSelector((state: RootState) =>
+  //  const currentFormId = useSelector(
+  //    (state: RootState) => state.forms.currentFormId
+  //  );
+  const currentReduxForm = useSelector((state: RootState) =>
     state.forms.forms.find((form) => form.id === currentFormId)
   );
   // const forms = useSelector((state: RootState) => state.forms.forms);
+  const currentForm = localForm || currentReduxForm;
+
+  useEffect(() => {
+    if (currentFormId) {
+      setLoading(true);
+      dispatch(fetchFormByIdThunk(currentFormId))
+        .unwrap()
+        .then((fetchedForm) => {
+          setLocalForm(fetchedForm);
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching form:", error);
+          setLoading(false);
+        });
+    }
+  }, [dispatch, currentFormId, currentForm]);
 
   const formTitle = currentForm?.formTitle || "";
   const formDescription = currentForm?.formDescription || "";

@@ -15,6 +15,9 @@ import BlankForm from "./pages/BlankForm.tsx";
 import ViewForm from "./components/viewForm/ViewForm.tsx";
 import AuthPage from "./pages/AuthPage.tsx";
 import ProtectedRoute from "./pages/ProtectedRoute.tsx";
+import { useEffect } from "react";
+import { validateTokenThunk } from "./store/authSlice.ts";
+import { useAppDispatch } from "./store/typedHooks.ts";
 
 function App() {
   const router = createBrowserRouter(
@@ -30,14 +33,20 @@ function App() {
             element={<BlankForm />}
             // action={blankFormAction}
           />
-
-          <Route path="form/:id" element={<ViewForm />} />
         </Route>
+        <Route path="form/:id" element={<ViewForm />} />
         {/* <Route path="responses/:id" element={<Responses />} /> */}
         <Route path="*" element={<PageNotFound />} />
       </Route>
     )
   );
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    // Dispatch the validateTokenThunk on component mount
+    dispatch(validateTokenThunk());
+  }, [dispatch]);
 
   return (
     <>

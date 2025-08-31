@@ -81,9 +81,9 @@ export default function AuthPage() {
     try {
       await dispatch(loginThunk(data)).unwrap();
       showSnackbar("Login successful!", "success");
-      // setTimeout(() => {
-      //   navigate("/");
-      // }, 1500);
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
     } catch (error) {
       console.log("login error: ", loginError);
       // const errorMessage =
@@ -107,9 +107,9 @@ export default function AuthPage() {
         loginThunk({ email: data.email, password: data.password })
       ).unwrap();
       showSnackbar(signupError || "Signup successful!", "success");
-      // setTimeout(() => {
-      //   navigate("/");
-      // }, 1500);
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
     } catch (error) {
       console.error("Signup failed:", error);
       // const errorMessage =

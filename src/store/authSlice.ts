@@ -22,7 +22,7 @@ export const loginThunk = createAsyncThunk<
     const response = await loginAPI(credentials);
     // const token = await loginAPI(credentials);
     // const token = user.token;
-    sessionStorage.setItem("authToken", response.token);
+    localStorage.setItem("authToken", response.token);
     return response;
   } catch (error) {
     // Change to any or error:unknown
@@ -63,16 +63,16 @@ export const validateTokenThunk = createAsyncThunk<
     dispatch: ThunkDispatch<unknown, unknown, UnknownAction>;
   }
 >("auth/validateToken", async (_, thunkAPI) => {
-  const token = sessionStorage.getItem("authToken");
+  const token = localStorage.getItem("authToken");
   if (!token) return thunkAPI.rejectWithValue("No token found");
 
   try {
     // Use the validateTokenAPI from the API file
     const user = await validateTokenAPI();
-    return { user, token };
+    return user;
   } catch (error) {
     // Clear invalid token
-    sessionStorage.removeItem("authToken");
+    localStorage.removeItem("authToken");
     if (error instanceof Error) {
       return thunkAPI.rejectWithValue(error.message);
     } else {
@@ -98,8 +98,8 @@ export const initialAuthState: AuthState = {
   loginError: null,
   signupLoading: false,
   signupError: null,
-  isAuthenticated: !!sessionStorage.getItem("authToken"),
-  token: sessionStorage.getItem("authToken"),
+  isAuthenticated: !!localStorage.getItem("authToken"),
+  token: localStorage.getItem("authToken"),
   currentUser: null,
   validationLoading: false,
   validationError: null,
@@ -113,7 +113,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.token = null;
       state.currentUser = null;
-      sessionStorage.removeItem("authToken");
+      localStorage.removeItem("authToken");
     },
     setCurrentUser: (state, action: PayloadAction<User>) => {
       state.currentUser = action.payload;
